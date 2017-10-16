@@ -1,0 +1,31 @@
+#selection {
+	height: 500px;
+}
+
+#leaf-map {
+	height: 100%;
+}
+
+.plots-container {
+	height: 500px;
+}
+
+.plot-container {
+	background-color: #eee;
+	height: 100%;
+}
+
+#detector-info {
+	height: 100%;
+}
+
+#description {
+	height: 100%;
+	width: 100%;
+
+	text-align: center;
+}
+
+.highlight {
+	background-color: blue;
+}

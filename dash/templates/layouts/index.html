@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>test</title>
+   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+   
+   {# JQuery #}
+   <script
+   src="https://code.jquery.com/jquery-3.2.1.min.js"
+   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+   crossorigin="anonymous"></script>
+
+   {# JQuery UI #}
+   <link rel="stylesheet" href="{{url_for('static', filename = 'jquery/jquery-ui.css')}}"/>
+   <script
+   src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+   integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+   crossorigin="anonymous"></script>
+
+   {# Bootstrap #}
+   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+   <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+   {# Leaflet #}
+   <link rel="stylesheet" href="{{url_for('static', filename = 'leaflet/leaflet.css')}}"/>
+   <script src="{{url_for('static', filename = 'leaflet/leaflet.js')}}"></script>
+   <link rel="stylesheet" href="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.css">
+   <script src="https://unpkg.com/leaflet-easybutton@2.0.0/src/easy-button.js"></script>
+
+   {# Plotly #}
+   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+   {# Index #}
+   <script>
+      date = "{{ date }}";
+   </script>
+   <script src="{{url_for('static', filename = 'selector.js')}}"></script>
+   <link rel="stylesheet", href="{{url_for('static', filename = 'index.css')}}">
+</head>
+
+<body>
+   <div class="container-fluid">
+      <div id="selection" class="row">
+         <div class="col-xs-2" id="detector-info">
+            {# {% include "description.html" %} #}
+         </div>
+         <div class="col-xs-9" id="leaf-map"></div>
+      </div>
+   </div>
+   <div class="container-fluid">
+      <div class="plots-container row">
+         <div class="col-xs-6 plot-container">
+            <div id="plot-1" class="plot responsive-plot"></div>
+         </div>
+         <div class="col-xs-6 plot-container">
+            <div id="plot-2" class="plot responsive-plot"></div>
+         </div>
+      </div>
+   </div>
+</body>
+</html>
