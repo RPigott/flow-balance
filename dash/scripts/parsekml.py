@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 
 from utils import revise_meta, rename_locations
-# from diagnostics.download import PemsDownloader as PDR
-# pdr = PDR()
 
 import re, operator
 import IPython

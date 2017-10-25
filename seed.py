@@ -29,7 +29,7 @@ logging.basicConfig(
 ldir = os.path.dirname(__file__)
 
 from dash.models import *
-from dash.scripts.diagnostics.download import PemsDownloader as PDR
+from pems.download import PemsDownloader as PDR
 pdr = PDR()
 from dash.scripts.utils import revise_meta, rename_locations, fwys
 from dash.scripts.parsekml import df_locations

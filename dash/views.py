@@ -9,7 +9,7 @@ import pandas as pd
 import os, datetime
 from operator import attrgetter
 
-from dash.scripts.diagnostics.download import PemsDownloader as PDR
+from pems.download import PemsDownloader as PDR
 from dash.scripts.balance import diagnose
 from dash.scripts.utils import revise_meta
 
