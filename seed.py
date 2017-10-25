@@ -109,7 +109,7 @@ db.create_all()
 fatvs = [FATV(int(n)) for n in df_cfatv.index]
 db.session.add_all(fatvs)
 
-log = Log(date = date)
+log = Log(date = date.date())
 db.session.add(log)
 
 db.session.commit()
