@@ -55,7 +55,7 @@ def index():
 		diag_types = {c.name : c.type for c in Diagnosis.__table__.columns}
 		df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, if_exists = 'append')
 
-		log = Log(date = date)
+		log = Log(date = date.date())
 		db.session.add(log)
 		db.session.commit()
 
