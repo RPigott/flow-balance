@@ -10,7 +10,7 @@ import IPython
 
 ldir = os.path.dirname(__file__)
 
-with open(os.path.join(ldir, 'maps', 'VDS-Locations.kml'), 'r') as file:
+with open(os.path.join(ldir, 'maps', 'VDS-locations.kml'), 'r') as file:
 	tree = parser.parse(file)
 
 root = tree.getroot()

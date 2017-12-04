@@ -18,7 +18,7 @@ def index():
 	date = request.args.get('date')
 	
 	if not date:
-		date = datetime.datetime(2017, 10, 7)
+		date = db.session.query(func.max(Log.date)).scalar()
 		return redirect(url_for('index', date = "{0:%Y}-{0:%m}-{0:%d}".format(date) ))
 
 	date = datetime.datetime.strptime(date, '%Y-%m-%d')
