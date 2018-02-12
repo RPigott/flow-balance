@@ -91,9 +91,13 @@ def diagnoses():
 
 @app.route('/errors', methods = ['POST'])
 def diagnose():
-	diagnosis = request.form
-	app.logger.info(diagnosis)
-	return jsonify({'success':True}), 200, {'ContentType':'application/json'}
+	data = request.form
+	diag_date = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
+	diag = Diagnosis(data['det'], diag_date, data['miscount'], data['comment'])
+	db.session.add(diag)
+	db.session.commit()
+	app.logger.info(data)
+	return jsonify(data), 200, {'ContentType':'application/json'}
 
 @app.route('/fatvs')
 def fatvs():
