@@ -45,14 +45,20 @@ class FATV(db.Model):
 		return self.detectors_in + self.detectors_out
 
 class Diagnosis(db.Model):
-	id = db.Column('Index', db.Integer, primary_key = True)
-	detector_id = db.Column('ID', db.Integer)
+	index = db.Column(db.Integer, primary_key = True)
+	detector_id = db.Column('DET_ID', db.Integer)
 	date = db.Column('Date', db.DateTime)
 	miscount = db.Column('Miscount', db.Integer)
 	comment = db.Column('Comment', db.String(140))
 
+	def __init__(self, detector_id, date, miscount, comment):
+		self.detector_id = detector_id
+		self.date = date
+		self.miscount = miscount
+		self.comment = comment
+
 	def __repr__(self):
-		return "Diagnosis <{}>".format(self.id)
+		return "Diagnosis <{}> <{}>".format(self.index, self.date)
 
 class data(db.Model):
 	id = db.Column('Index', db.Integer, primary_key = True)

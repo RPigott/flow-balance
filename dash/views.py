@@ -89,6 +89,12 @@ def diagnoses():
 	diagnoses = Diagnosis.query.filter(Diagnosis.date == date)
 	return jsonify([dg.detector_id for dg in diagnoses])
 
+@app.route('/errors', methods = ['POST'])
+def diagnose():
+	diagnosis = request.form
+	app.logger.info(diagnosis)
+	return jsonify({'success':True}), 200, {'ContentType':'application/json'}
+
 @app.route('/fatvs')
 def fatvs():
 	fatvs = FATV.query.all()

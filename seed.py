@@ -69,6 +69,8 @@ for fid, fatv in df_cfatv.iterrows():
 	df_meta.loc[df_meta.index & fatv['IN'], 'FATV IN'] = fid
 	df_meta.loc[df_meta.index & fatv['OUT'], 'FATV OUT'] = fid
 
+
+db.create_all()
 # Serialize the meta into the DB
 # meta_types = {
 	# 'dir': db.String(1),
@@ -78,19 +80,20 @@ for fid, fatv in df_cfatv.iterrows():
 	# 'capm': db.String(10)
 # }
 meta_types = {c.name : c.type for c in Detector.__table__.columns}
-df_meta.to_sql('detectors', con = db.engine, dtype = meta_types)
+del df_meta['City'] # No unicode support at the moment
+df_meta.to_sql('detectors', con = db.engine, dtype = meta_types, index = True, if_exists = 'append')
 # IPython.embed(); exit()
 
 # Handle the 5min data
 
 # Serialize the 'raw' data to the DB
-df_day.to_sql('data', con = db.engine)
+df_day.to_sql('data', con = db.engine, if_exists = 'append')
 
 # Handle Diagnoses
 imp2, miscount = diagnose(df_meta, df_day, df_cfatv)
 
 df_diag = pd.DataFrame({
-	'ID': imp2,
+	'DET_ID': imp2,
 	'Date': date.date(),
 	'Miscount': miscount,
 	'Comment': ['' for idx in imp2]
@@ -102,9 +105,8 @@ df_diag = pd.DataFrame({
 	# 'Comment': db.String(140)
 # }
 diag_types = {c.name : c.type for c in Diagnosis.__table__.columns}
-df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types)
+df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, if_exists = 'append')
 
-db.create_all()
 
 fatvs = [FATV(int(n)) for n in df_cfatv.index]
 db.session.add_all(fatvs)
