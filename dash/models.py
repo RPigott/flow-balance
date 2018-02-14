@@ -5,6 +5,7 @@ class Log(db.Model):
 	__tablename__ = 'logs'
 	id = db.Column('id', db.Integer, primary_key = True)
 	date = db.Column('Date', db.DateTime, unique = True)
+	time = db.Column('Time', db.DateTime)
 
 class Detector(db.Model):
 	__tablename__ = 'detectors'

@@ -40,6 +40,7 @@ import IPython
 # Handle args
 day = args['--day']
 date = dateparser.parse(day, languages = ['en'])
+time = datetime.datetime.now()
 
 # Acquire data frames meta, station_5min, and cfatv
 mday, df_meta = pdr.download('meta')
@@ -111,7 +112,7 @@ df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, if_exists = 'ap
 fatvs = [FATV(int(n)) for n in df_cfatv.index]
 db.session.add_all(fatvs)
 
-log = Log(date = date.date())
+log = Log(date = date.date(), time = time)
 db.session.add(log)
 
 db.session.commit()

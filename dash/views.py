@@ -22,8 +22,21 @@ def index():
 		return redirect(url_for('index', date = "{0:%Y}-{0:%m}-{0:%d}".format(date) ))
 
 	date = datetime.datetime.strptime(date, '%Y-%m-%d')
-	if Log.query.filter_by(date = date).scalar() is None:
-		pdr = PDR()
+	return render_template('layouts/index.html', date = date.date())
+
+@app.route('/update', methods = ['PATCH'])
+def analyze():
+
+	command = request.get_json()
+	pdr = PDR()
+
+	for date in command["dates"]:
+		date = datetime.datetime.strptime(date, '%Y-%m-%d')
+		time = datetime.datetime.now()
+
+		if Log.query.filter_by(date = date).order_by(Log.time.desc()).first():
+			continue
+
 		day, df_meta = pdr.download('meta')
 		df_meta = revise_meta(df_meta)
 
@@ -34,32 +47,34 @@ def index():
 				'OUT': [[d.id for d in fatv.detectors_out] for fatv in fatvs]
 			}) # Just reconstruct df_cfatv, its easier
 
-		# include fatv data in df_meta
+		# Include FATV data in df_meta
 		df_meta['FATV IN'] = None
 		df_meta['FATV OUT'] = None
 		for fid, fatv in df_cfatv.iterrows():
 			df_meta.loc[df_meta.index & fatv['IN'], 'FATV IN'] = fid
 			df_meta.loc[df_meta.index & fatv['OUT'], 'FATV OUT'] = fid
 
+		# Curate data to efficiently insert from pandas
 		df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
 		df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
 
+		# Perform network diagnosis
 		imp2, miscount = diagnose(df_meta, df_day, df_cfatv)
 		df_diag = pd.DataFrame({
-			'ID': imp2,
+			'DET_ID': imp2,
 			'Date': date,
 			'Miscount': miscount,
 			'Comment': ['' for idx in imp2]
 		})
 
-		diag_types = {c.name : c.type for c in Diagnosis.__table__.columns}
-		df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, if_exists = 'append')
+		diag_types = {c.name : c.type for c in Diagnosis.__table__.columns} # Is this necesary?
+		df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, index = False, if_exists = 'append')
 
-		log = Log(date = date)
+		log = Log(date = date, time = time)
 		db.session.add(log)
 		db.session.commit()
 
-	return render_template('layouts/index.html', date = date.date())
+	return jsonify({'Success': True}), 200, {'Content-Type': 'application/json'}
 
 @app.route('/detectors/all')
 def detectors():
@@ -90,7 +105,7 @@ def diagnoses():
 	return jsonify([dg.detector_id for dg in diagnoses])
 
 @app.route('/errors', methods = ['POST'])
-def diagnose():
+def errors():
 	data = request.get_json()
 	diagnoses = [Diagnosis(datum) for datum in data["diagnoses"]]
 	db.session.add_all(diagnoses)
