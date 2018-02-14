@@ -42,7 +42,7 @@ def index():
 			df_meta.loc[df_meta.index & fatv['OUT'], 'FATV OUT'] = fid
 
 		df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
-		df_day.to_sql('data', con = db.engine, if_exists = 'append')
+		df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
 
 		imp2, miscount = diagnose(df_meta, df_day, df_cfatv)
 		df_diag = pd.DataFrame({
@@ -91,11 +91,14 @@ def diagnoses():
 
 @app.route('/errors', methods = ['POST'])
 def diagnose():
-	data = request.form
-	diag_date = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
-	diag = Diagnosis(data['det'], diag_date, data['miscount'], data['comment'])
-	db.session.add(diag)
+	data = request.get_json()
+	diagnoses = [Diagnosis(datum) for datum in data["diagnoses"]]
+	db.session.add_all(diagnoses)
 	db.session.commit()
+	# diag_date = datetime.datetime.strptime(data['date'], '%Y-%m-%d').date()
+	# diag = Diagnosis(data['det'], diag_date, data['miscount'], data['comment'])
+	# db.session.add(diag)
+	# db.session.commit()
 	app.logger.info(data)
 	return jsonify(data), 200, {'ContentType':'application/json'}
 

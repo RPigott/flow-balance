@@ -87,7 +87,7 @@ df_meta.to_sql('detectors', con = db.engine, dtype = meta_types, index = True, i
 # Handle the 5min data
 
 # Serialize the 'raw' data to the DB
-df_day.to_sql('data', con = db.engine, if_exists = 'append')
+df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
 
 # Handle Diagnoses
 imp2, miscount = diagnose(df_meta, df_day, df_cfatv)

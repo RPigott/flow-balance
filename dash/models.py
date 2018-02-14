@@ -1,4 +1,5 @@
 from dash import db
+import datetime
 
 class Log(db.Model):
 	__tablename__ = 'logs'
@@ -51,17 +52,17 @@ class Diagnosis(db.Model):
 	miscount = db.Column('Miscount', db.Integer)
 	comment = db.Column('Comment', db.String(140))
 
-	def __init__(self, detector_id, date, miscount, comment):
-		self.detector_id = detector_id
-		self.date = date
-		self.miscount = miscount
-		self.comment = comment
+	def __init__(self, data):
+		self.detector_id = data["detector_id"]
+		self.date = datetime.datetime.strptime(data["date"], '%Y-%m-%d') 
+		self.miscount = data["miscount"]
+		self.comment = data["comment"]
 
 	def __repr__(self):
 		return "Diagnosis <{}> <{}>".format(self.index, self.date)
 
 class data(db.Model):
-	id = db.Column('Index', db.Integer, primary_key = True)
+	id = db.Column('id', db.Integer, primary_key = True)
 	timestamp = db.Column('Timestamp', db.DateTime)
 	detector_id = db.Column('Station', db.ForeignKey(Detector.id))
 	samples = db.Column('Samples', db.Integer)
