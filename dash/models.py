@@ -7,6 +7,9 @@ class Log(db.Model):
 	date = db.Column('Date', db.DateTime, unique = True)
 	time = db.Column('Time', db.DateTime)
 
+	def __repr__(self):
+		return "Log data <{}> from <{}>".format(self.date, self.time)
+
 class Detector(db.Model):
 	__tablename__ = 'detectors'
 	id = db.Column('ID', db.Integer, primary_key = True)

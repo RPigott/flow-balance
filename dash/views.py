@@ -30,8 +30,12 @@ def analyze():
 	command = request.get_json()
 	pdr = PDR()
 
+	one_day = datetime.timedelta(days = 1)
+	zero_time = datetime.time(0, 0)
+	to_datetime = lambda day: datetime.datetime.combine(day, zero_time)
+	
 	for date in command["dates"]:
-		date = datetime.datetime.strptime(date, '%Y-%m-%d')
+		date = datetime.datetime.strptime(date, '%Y-%m-%d').date() if date else None
 		time = datetime.datetime.now()
 
 		if Log.query.filter_by(date = date).order_by(Log.time.desc()).first():
@@ -40,7 +44,7 @@ def analyze():
 		day, df_meta = pdr.download('meta')
 		df_meta = revise_meta(df_meta)
 
-		day, df_day = pdr.download('station_5min', date = date.date(), parse_dates = True)
+		day, df_day = pdr.download('station_5min', date = date, parse_dates = True)
 		fatvs = FATV.query.all()
 		df_cfatv = pd.DataFrame({
 				'IN':  [[d.id for d in fatv.detectors_in ] for fatv in fatvs],
@@ -53,6 +57,10 @@ def analyze():
 		for fid, fatv in df_cfatv.iterrows():
 			df_meta.loc[df_meta.index & fatv['IN'], 'FATV IN'] = fid
 			df_meta.loc[df_meta.index & fatv['OUT'], 'FATV OUT'] = fid
+
+		Log.query.filter(Log.date == to_datetime(day)).delete()
+		data.query.filter(data.timestamp >= to_datetime(day)).filter(data.timestamp < to_datetime(day + one_day)).delete()
+		db.session.commit()
 
 		# Curate data to efficiently insert from pandas
 		df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
@@ -70,7 +78,7 @@ def analyze():
 		diag_types = {c.name : c.type for c in Diagnosis.__table__.columns} # Is this necesary?
 		df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, index = False, if_exists = 'append')
 
-		log = Log(date = date, time = time)
+		log = Log(date = day, time = time)
 		db.session.add(log)
 		db.session.commit()
 
