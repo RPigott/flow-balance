@@ -93,7 +93,7 @@ df_meta.to_sql('detectors', con = db.engine, dtype = meta_types, index = True, i
 
 # Serialize the 'raw' data to the DB
 logger.info("Populating Data")
-df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
+df_day.to_sql('data', con = db.engine, index = False, chunksize = 1000, if_exists = 'append')
 
 # Handle Diagnoses
 logger.info("Preliminary Diagnosis")

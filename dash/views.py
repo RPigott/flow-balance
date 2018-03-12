@@ -64,7 +64,7 @@ def analyze():
 
 		# Curate data to efficiently insert from pandas
 		df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
-		df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
+		df_day.to_sql('data', con = db.engine, index = False, chunksize = 1000, if_exists = 'append')
 
 		# Perform network diagnosis
 		imp2, miscount = diagnose(df_meta, df_day, df_cfatv)
