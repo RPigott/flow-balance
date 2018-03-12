@@ -9,7 +9,7 @@ Usage:
 
 Options:
   -h --help     Show this help message
-  --day=<date>  Update the db for the given day  [default: yesterday]
+  --day=<date>  Update the db for the given day  [default: 2 days ago]
 """
 from docopt import docopt
 args = docopt(__doc__)
@@ -25,6 +25,7 @@ logging.basicConfig(
     format = "%(levelname)s: [%(name)s] %(message)s",
     stream = sys.stdout
 )
+logger= logging.getLogger(__name__)
 
 ldir = os.path.dirname(__file__)
 
@@ -71,6 +72,7 @@ for fid, fatv in df_cfatv.iterrows():
 	df_meta.loc[df_meta.index & fatv['OUT'], 'FATV OUT'] = fid
 
 
+logger.info("Creating DB")
 db.create_all()
 # Serialize the meta into the DB
 # meta_types = {
@@ -80,6 +82,8 @@ db.create_all()
 	# 'ltype': db.String(25),
 	# 'capm': db.String(10)
 # }
+
+logger.info("Populating Detectors")
 meta_types = {c.name : c.type for c in Detector.__table__.columns}
 del df_meta['City'] # No unicode support at the moment
 df_meta.to_sql('detectors', con = db.engine, dtype = meta_types, index = True, if_exists = 'append')
@@ -88,9 +92,11 @@ df_meta.to_sql('detectors', con = db.engine, dtype = meta_types, index = True, i
 # Handle the 5min data
 
 # Serialize the 'raw' data to the DB
+logger.info("Populating Data")
 df_day.to_sql('data', con = db.engine, index = False, if_exists = 'append')
 
 # Handle Diagnoses
+logger.info("Preliminary Diagnosis")
 imp2, miscount = diagnose(df_meta, df_day, df_cfatv)
 
 df_diag = pd.DataFrame({
@@ -108,11 +114,12 @@ df_diag = pd.DataFrame({
 diag_types = {c.name : c.type for c in Diagnosis.__table__.columns}
 df_diag.to_sql('diagnosis', con = db.engine, dtype = diag_types, if_exists = 'append')
 
-
+logger.info("Populating FATV")
 fatvs = [FATV(int(n)) for n in df_cfatv.index]
 db.session.add_all(fatvs)
 
 log = Log(date = date.date(), time = time)
 db.session.add(log)
 
+logger.info("DB Commit")
 db.session.commit()
