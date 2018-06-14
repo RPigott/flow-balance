@@ -3,7 +3,7 @@ import pandas as pd
 
 import datetime as dt
 from dateutil.parser import parse as parse_date
-import boto3, json
+import boto3, json, io
 
 from operator import itemgetter, attrgetter
 import logging
@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def lambda_handler(event, context):
 	record, = event['Records']
 	key = record['s3']['object']['key']
+	key = key.split('/')[-1]
 
 	date = parse_date(key).date()
 
@@ -27,7 +28,9 @@ def lambda_handler(event, context):
 	df_cfatv = get_cfatv()
 	
 	# Identify imbalanced detectors
-	df_cfatv[['ERR', 'DIF', 'VOL']] = np.nan
+	df_cfatv['ERR'] = np.nan
+	df_cfatv['VOL'] = np.nan
+	df_cfatv['DIF'] = np.nan
 	for idx in df_cfatv.index:
 		ins, outs = df_cfatv.loc[idx, ['IN', 'OUT']]
 		try:
@@ -69,12 +72,12 @@ def lambda_handler(event, context):
 	infatvs = df_meta.loc[imp2, 'FATV IN']
 	outfatvs = df_meta.loc[imp2, 'FATV OUT']
 
-	invals = df_cfatv.loc[infatvs, 'ERR'].values
-	outvals = df_cfatv.loc[outfatvs, 'ERR'].values
+	invals = df_cfatv.loc[infatvs, 'DIF'].values
+	outvals = df_cfatv.loc[outfatvs, 'DIF'].values
 
 	miscount = (outvals - invals)
 
-	diagnosis = [{"detector": det, "miscount": m, "comment": ""} for det, m in zip(imp2, miscount)]
+	diagnosis = [{"detector": det, "diagnosis": "error", "miscount": m, "comment": ""} for det, m in zip(imp2, miscount)]
 
 	put_str(json.dumps(diagnosis), 'data/balance/{}'.format(key))
 
