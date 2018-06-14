@@ -52,12 +52,10 @@ def lambda_handler(event, context):
 
     put_df(df_meta, 'data/detectors/{:%Y-%m-%d}'.format(date))
 
-
     # data/flows update
     day, df_day = pdr.download('station_5min', date = date)
-    # df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
-    df_day = df_day.pivot('Timestamp', 'Station', 'Flow')
-    put_df(df_day, 'data/flows/{:%Y-%m-%d}'.format(date))
+    put_df(df_day, 'data/raw/{:%Y-%m-%d}'.format(date))
+
 
 def get_df(key):
     s3 = boto3.client('s3')
