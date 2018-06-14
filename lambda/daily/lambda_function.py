@@ -9,8 +9,6 @@ from pems.util import revise_meta, rename_locations, fwys
 
 import boto3, io
 
-DATA_BUCKET = 'flow-balance'
-
 def lambda_handler(event, context):
     date = parse_date(event['time']).date()
     date = date - dt.timedelta(days = 1) # Always work from yesterday
@@ -52,7 +50,7 @@ def lambda_handler(event, context):
 
     put_df(df_meta, 'data/detectors/{:%Y-%m-%d}'.format(date))
 
-    # data/flows update
+    # data/raw update
     day, df_day = pdr.download('station_5min', date = date)
     put_df(df_day, 'data/raw/{:%Y-%m-%d}'.format(date))
 
@@ -60,7 +58,7 @@ def lambda_handler(event, context):
 def get_df(key):
     s3 = boto3.client('s3')
     store = io.BytesIO()
-    s3.download_fileobj(DATA_BUCKET, key, store)
+    s3.download_fileobj('flow-balance', key, store)
     store.seek(0)
     df_store = pd.read_csv(store, index_col = 0)
     return df_store
@@ -70,12 +68,12 @@ def put_df(df, key):
     store = io.BytesIO()
     df.to_csv(store)
     store.seek(0)
-    s3.upload_fileobj(store, DATA_BUCKET, key)
+    s3.upload_fileobj(store, 'flow-balance', key)
 
 def get_cfatv():
     s3 = boto3.client('s3')
     store = io.BytesIO()
-    s3.download_fileobj(DATA_BUCKET, 'info/fatvs.json', store)
+    s3.download_fileobj('flow-balance', 'info/fatvs.json', store)
     store.seek(0)
     df_cfatv = pd.read_json(store, orient = 'index').sort_index()
     return df_cfatv
