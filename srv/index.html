@@ -33,9 +33,11 @@
 	<!--Index -->
 	<script>
 		date = window.location.pathname.split('/')[1];
+		const ID_TOKEN = window.location.hash.substr(1).split('&')[0].split('=')[1];
+		window.location.hash = '';
 	</script>
 	<script src="selector.js"></script>
-	<link rel="stylesheet", href="index.css">
+	<link rel="stylesheet", href="style.css">
 </head>
 
 <body>
