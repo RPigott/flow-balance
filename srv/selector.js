@@ -57,8 +57,10 @@ var Selector = {
 	'createMarkers': function() {
 		this.detectors = {};
 		var self = this;
-		$.getJSON('detectors/all', function(json) {
+		var target = root_api + 'data/detectors/latest'
+		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
+				var loc = [info.Latitude, info.Longitude]
 				var marker = L.marker(info.loc, {
 					icon: self.standardIcon,
 					opacity: 0.9
@@ -276,7 +278,27 @@ var Selector = {
 	}
 };
 
+(function($) {
+var re = /([^&=]+)=?([^&]*)/g;
+var decodeRE = /\+/g;  // Regex for replacing addition symbol with a space
+var decode = function (str) {return decodeURIComponent( str.replace(decodeRE, " ") );};
+$.parseParams = function(query) {
+    var params = {}, e;
+    while ( e = re.exec(query) ) { 
+        var k = decode( e[1] ), v = decode( e[2] );
+        if (k.substring(k.length - 2) === '[]') {
+            k = k.substring(0, k.length - 2);
+            (params[k] || (params[k] = [])).push(v);
+        }
+        else params[k] = v;
+    }
+    return params;
+};
+})(jQuery);
+
 $('document').ready(function() {
+	root_api = 'https://k30xor61gh.execute-api.us-west-2.amazonaws.com/alpha/'
+	date = $.parseParams(window.location.search.substr(1)) || ''
 	selector = Selector.init();
 
 	$('#plot-1').on('plotly_relayout', function(e, edata) {

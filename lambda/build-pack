@@ -15,21 +15,23 @@ sudo yum install -y \
     zip \
     git
 
+# Start fresh
+rm -rf env
+rm -rf pack
+
 # Allow git
 git config --global credential.helper '!aws codecommit credential-helper $@'
 git config --global credential.UseHttpPath true
 
 # Make dummy virtualenv
-rm -rf env
 virtualenv env
 source env/bin/activate
 
 # Package fluff
 pip install --upgrade pip wheel
-pip install git+https://git-codecommit.us-west-2.amazonaws.com/v1/repos/ams-core
+pip install -r "$1/requirements.txt"
 
 # Fresh packaging area
-rm -rf pack
 mkdir pack
 
 # Include what is necessary
@@ -40,7 +42,7 @@ cp -r env/lib64/python2.7/site-packages/* pack/
 find pack/ -type d -name 'tests' -exec rm -rf {} +
 find pack/ -name '*.so' | xargs strip
 find pack/ -name '*.so*' | xargs strip
-find pack/ -name '*.pyc' --delete
+# find pack/ -name '*.pyc' -delete # not really necessary
 
 rm -rf pack/pip*
 rm -rf pack/wheel*
