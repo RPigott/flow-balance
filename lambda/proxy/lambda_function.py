@@ -25,8 +25,10 @@ def lambda_handler(event, context):
 	for d in dd.values():
 		d['loc'] = [d['Latitude'], d['Longitude']]
 	
+	# AWS apigateway CORS is broken AF for some reason... manually added ACAO header
 	return {
 		'statusCode': 200,
+		'headers': {'access-control-allow-origin': '*'}, # dirty hack
 		'body': json.dumps(dd)
 	}
 
