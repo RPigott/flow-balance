@@ -58,9 +58,10 @@ var Selector = {
 		this.detectors = {};
 		var self = this;
 		var target = root_api + 'data/detectors/latest'
+		console.log(target);
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
-				var loc = [info.Latitude, info.Longitude]
+				info.loc = [info.lat, info.lon];
 				var marker = L.marker(info.loc, {
 					icon: self.standardIcon,
 					opacity: 0.9
@@ -122,7 +123,8 @@ var Selector = {
 	'getFATVs': function() {
 		var self = this;
 		this.fatvs = {};
-		$.getJSON('fatvs', function(json) {
+		var target = root_api + 'info/fatvs';
+		$.getJSON(target, function(json) {
 			$.each(json, function(fid, ids) {
 				self.fatvs[fid] = $.map(ids['IN'].concat(ids['OUT']), function(id) {
 					return self.detectors[id];
@@ -297,7 +299,7 @@ $.parseParams = function(query) {
 })(jQuery);
 
 $('document').ready(function() {
-	root_api = 'https://k30xor61gh.execute-api.us-west-2.amazonaws.com/alpha/'
+	root_api = 'https://2o0pm5fi7f.execute-api.us-west-2.amazonaws.com/alpha/'
 	date = $.parseParams(window.location.search.substr(1)) || ''
 	selector = Selector.init();
 

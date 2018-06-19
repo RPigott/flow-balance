@@ -10,26 +10,38 @@ import logging
 logger = logging.getLogger(__name__)
 
 def lambda_handler(event, context):
-	date = event['pathParameters']['date']
+	proxy = event['pathParameters']['proxy']
+	path = proxy.split('/')
+
+	if path[0] == 'detectors':
+		return handle_detectors(path)
+
+def handle_detectors(path):
+	_, date = path
 	if date == 'latest':
 		latest = sorted(ls_key('data/raw/'))[-1]
 		date = latest.split('/')[-1]
 	
 	df_meta = get_df('data/detectors/{}'.format(date))
 	df_meta.rename(
-		columns =  {'FATV IN': 'fatv_in', 'FATV OUT': 'fatv_out'},
+		columns =  {
+			'FATV IN': 'fatv_in',
+			'FATV OUT': 'fatv_out',
+			'Latitude': 'lat',
+			'Longitude': 'lon'
+		},
 		inplace = True
-		)
+	)
 		
-	dd = {id: dict(row) for id, row in df_meta.iterrows()}
-	for d in dd.values():
-		d['loc'] = [d['Latitude'], d['Longitude']]
-	
+	body = df_meta.to_json(orient = 'index')
+	return proxy_response(body)
+
+def proxy_response(body):
 	# AWS apigateway CORS is broken AF for some reason... manually added ACAO header
 	return {
 		'statusCode': 200,
 		'headers': {'access-control-allow-origin': '*'}, # dirty hack
-		'body': json.dumps(dd)
+		'body': body
 	}
 
 def ls_key(key):
