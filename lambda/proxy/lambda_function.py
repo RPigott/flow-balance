@@ -54,6 +54,7 @@ def handle_plot(path):
 	latest = sorted(ls_key('data/flows/'))[-1]
 	df_piv = get_df(latest)
 	df_piv.columns = pd.to_numeric(df_piv.columns) # df_piv has ids as cols
+	df_piv.index = pd.to_datetime(df_piv.index) # df_piv has timestamp as index
 
 	fatv = int(path[1])
 	df_cfatv = get_cfatv()
@@ -69,7 +70,7 @@ def handle_plot(path):
 				'name': 'IN',
 				'mode': 'lines',
 				'x': [str(time) for time in in_data.index],
-				'y': list(in_data.values)
+				'y': [n if not np.isnan(n) else None for n in in_data.values]
 			}
 		},
 		'OUT': {
@@ -78,7 +79,7 @@ def handle_plot(path):
 				'name': 'OUT',
 				'mode': 'lines',
 				'x': [str(time) for time in out_data.index],
-				'y': list(out_data.values)
+				'y': [n if not np.isnan(n) else None for n in out_data.values]
 			}
 		}
 	}

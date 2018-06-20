@@ -54,11 +54,24 @@ var Selector = {
 		radius: 10
 	}),
 
+	'getFATVs': function() {
+		var self = this;
+		this.fatvs = {};
+		var target = root_api + 'info/fatvs';
+		$.getJSON(target, function(json) {
+			$.each(json, function(fid, ids) {
+				var group = $.map(ids['IN'].concat(ids['OUT']), function(id) {
+					return self.detectors[id];
+				});
+				self.fatvs[fid] = group;
+			});
+		});
+	},
+
 	'createMarkers': function() {
 		this.detectors = {};
 		var self = this;
 		var target = root_api + 'data/detectors/latest'
-		console.log(target);
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
 				info.loc = [info.lat, info.lon];
@@ -82,7 +95,7 @@ var Selector = {
 			self.markErrors(date);
 			self.all_layer = L.featureGroup($.map(self.detectors, function(det) {return det;}));
 			self.all_layer.addTo(self.map);
-		});
+		}).then(this.getFATVs.bind(this));
 	},
 
 	'markErrors': function(date) {
@@ -121,19 +134,6 @@ var Selector = {
 		this.closePopup();
 	},
 
-	'getFATVs': function() {
-		var self = this;
-		this.fatvs = {};
-		var target = root_api + 'info/fatvs';
-		$.getJSON(target, function(json) {
-			$.each(json, function(fid, ids) {
-				self.fatvs[fid] = $.map(ids['IN'].concat(ids['OUT']), function(id) {
-					return self.detectors[id];
-				});
-			});
-		});
-	},
-
 	'init': function() {
 		this.map = L.map('leaf-map').setView(this.settings.home, this.settings.homeZoom);
 		this.n_layer = null;
@@ -148,7 +148,7 @@ var Selector = {
 		}).addTo(this.map);
 
 		this.createMarkers();
-		this.getFATVs();
+		//this.getFATVs();
 
 		this.resetButton = L.easyButton('fa-home fa-lg', this.resetView.bind(this));
 		this.resetButton.addTo(this.map);
@@ -215,6 +215,7 @@ var Selector = {
 		if (detector.info.fatv_in) {
 			target = root_api + 'data/plot/' + detector.info.fatv_in
 			$.getJSON(target, function(flows) {
+				console.log(flows['IN']['detectors']);
 				// Plotly.purge('plot-1');
 				if (self.selected == detector) {
 					Plotly.newPlot('plot-1', [flows['IN']['data'], flows['OUT']['data']], {
@@ -230,7 +231,7 @@ var Selector = {
 						}
 					});
 				};
-			});
+			}).fail(function (jqxhr, textStatus, errorThrown) {console.log(textStatus, errorThrown)});
 		} else {
 			Plotly.purge('plot-1');
 		};
@@ -238,13 +239,14 @@ var Selector = {
 		if (detector.info.fatv_out) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_out
 			$.getJSON(target, function(flows) {
+				console.log(flows['IN']['detectors']);
 				// Plotly.purge('plot-2');
 				if (self.selected == detector) {
 					Plotly.newPlot('plot-2', [flows['IN']['data'], flows['OUT']['data']], {
 						'title': 'FATV ' + detector.info.fatv_out + '<br>' +
 						'IN: ' + titleize(flows['IN']['detectors']).join(', ') + '<br>' +
 						'OUT: ' + titleize(flows['OUT']['detectors']).join(', '),
-						
+
 						'xaxis': {
 							'title': 'Time'
 						},
