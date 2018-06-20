@@ -1,1 +1,1 @@
-git+ssh://git-codecommit.us-west-2.amazonaws.com/v1/repos/ams-core
+git+https://git-codecommit.us-west-2.amazonaws.com/v1/repos/ams-core

@@ -47,7 +47,7 @@ time = datetime.datetime.now()
 mday, df_meta = pdr.download('meta')
 
 day, df_day = pdr.download('station_5min', date = date.date(), parse_dates = True)
-df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
+# df_day.drop(['District', 'Freeway', 'Direction', 'Lane Type', 'Station Length'], axis = 1, inplace = True)
 
 df_cfatv = pd.read_json(os.path.join(ldir, 'dash', 'scripts', 'model', 'fatvs.json'), orient = 'index').sort_index()
 
