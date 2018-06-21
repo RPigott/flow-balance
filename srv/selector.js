@@ -15,6 +15,17 @@ var Selector = {
 		shadowAnchor: [12, 41]  // the same for the shadow
 	}),
 
+	'emptyIcon': L.icon({
+		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-grey.png',
+		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+
+		iconSize: [25, 41],
+		iconAnchor: [12, 41],
+		popupAnchor: [1, -34],
+		shadowSize: [41, 41],
+		shadowAnchor: [12, 41]  // the same for the shadow
+	}),
+
 	'standardIcon': L.icon({
 		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
 		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -92,10 +103,10 @@ var Selector = {
 				self.detectors[id] = marker;
 			});
 
-			self.markErrors(date);
+			//self.markErrors(date);
 			self.all_layer = L.featureGroup($.map(self.detectors, function(det) {return det;}));
 			self.all_layer.addTo(self.map);
-		}).then(this.getFATVs.bind(this));
+		}).then(this.getFATVs.bind(this)).then(this.markErrors.bind(this));
 	},
 
 	'markErrors': function(date) {
@@ -105,9 +116,24 @@ var Selector = {
 		var self = this;
 		var target = root_api + 'data/diagnosis'
 		$.getJSON(target, function(marked) {
-			self.marked = marked.map(function(x) {return x.detector;});
-			$.each(marked, function(idx, id) {
-				self.detectors[id].setIcon(self.errorIcon);
+			self.marked = marked;
+			$.each(marked["unknown"], function(idx, det) {
+				var detector = self.detectors[det];
+				if (detector) {
+					detector.setIcon(self.outIcon);
+				}
+			});
+			$.each(marked["unobv"], function(idx, det) {
+				var detector = self.detectors[det];
+				if (detector) {
+					detector.setIcon(self.emptyIcon);
+				}
+			});
+			$.each(marked["error"], function(idx, det) {
+				var detector = self.detectors[det];
+				if (detector) {
+					detector.setIcon(self.errorIcon);
+				}
 			});
 		});
 	},

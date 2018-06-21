@@ -77,7 +77,18 @@ def lambda_handler(event, context):
 
 	miscount = (outvals - invals)
 
-	diagnosis = [{"detector": det, "diagnosis": "error", "miscount": m, "comment": ""} for det, m in zip(imp2, miscount)]
+	# diagnosis = [{"detector": det, "diagnosis": "error", "miscount": m, "comment": ""} for det, m in zip(imp2, miscount)]
+	# diagnosis += [{"detector": det, "diagnosis": "unobv", "comment": ""} for det in (df_meta.index & unobv)]
+
+	# diagnosis += [{"detector": det, "diagnosis": "unknown", "comment": ""} for det in unknown]
+
+	
+	unknown = set(df_cfatv[df_cfatv['ERR'].isnull()][['IN', 'OUT']].sum().sum())
+	diagnosis = {
+		'error': imp2,
+		'unobv': list(df_meta.index & unobv),
+		'unknown': list(unknown)
+	}
 
 	put_str(json.dumps(diagnosis), 'data/balance/{}'.format(key))
 

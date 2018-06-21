@@ -59,6 +59,7 @@ def lambda_handler(event, context):
 	obv = df_day.pivot('Timestamp', 'Station', 'Observed').mean() > 50
 	unobv = obv[~obv].index
 	df_piv[unobv] = np.nan
+	df_piv = df_piv[df_meta.index]
 	put_df(df_piv, 'data/flows/{:%Y-%m-%d}'.format(date))
 
 def get_df(key):
