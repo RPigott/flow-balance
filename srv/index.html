@@ -32,7 +32,8 @@
 
 	<!--Index -->
 	<script>
-		const ID_TOKEN = window.location.hash.substr(1).split('&')[0].split('=')[1];
+		const ID_TOKEN = window.sessionStorage["id_token"] || window.location.hash.substr(1).split('&')[0].split('=')[1];
+		window.sessionStorage["id_token"] = ID_TOKEN;
 		window.location.hash = '';
 	</script>
 	<script src="selector.js"></script>
@@ -42,7 +43,54 @@
 <body>
 	<div class="container-fluid">
 		<div id="selection" class="row">
-			<div class="col-xs-2" id="detector-info"></div>
+			<div class="col-xs-2" id="detector-info">
+				<table id="description" class="table-striped table-bordered">
+					<tr>
+						<td>Name</td>
+						<td id="det-name"> </td>
+					</tr>
+					<tr>
+						<td>Detector</td>
+						<td id="det-id"> </td>
+					</tr>
+					<tr>
+						<td>Freeway</td>
+						<td id="det-fwy"> </td>
+					</tr>
+					<tr>
+						<td>Type</td>
+						<td id="det-type"> </td>
+					</tr>
+					<tr>
+						<td>Direction</td>
+						<td id="det-dir"> </td>
+					</tr>
+					<tr>
+						<td>County</td>
+						<td id="det-county"> </td>
+					</tr>
+					<tr>
+						<td>City</td>
+						<td id="det-city"> </td>
+					</tr>
+					<tr>
+						<td>Latitude</td>
+						<td id="det-lat"> <i class="fa fa-pencil" aria-hidden="true"></i></td>
+					</tr>
+					<tr>
+						<td>Longitude</td>
+						<td id="det-lon"> <i class="fa fa-pencil" aria-hidden="true"></i></td>
+					</tr>
+					<tr>
+						<td>FATV In</td>
+						<td id="det-fatv-in"> </td>
+					</tr>
+					<tr>
+						<td>FATV Out</td>
+						<td id="det-fatv-out"> </td>
+					</tr>
+				</table>
+			</div>
 			<div class="col-xs-9" id="leaf-map"></div>
 		</div>
 	</div>

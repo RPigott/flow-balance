@@ -150,6 +150,21 @@ var Selector = {
 		this.describe(detector);
 		this.showPlots(detector, old);
 		this.showNeighborhood(detector)
+		this.fillTable(detector);
+	},
+	
+	'fillTable': function (detector) {
+		$('#det-name').text(detector.info["Name"]);
+		$('#det-id').text(detector.id);
+		$('#det-fwy').text(detector.info["Fwy"]);
+		$('#det-type').text(detector.info["Type"]);
+		$('#det-dir').text(detector.info["Dir"]);
+		$('#det-county').text(detector.info["County"]);
+		$('#det-city').text(detector.info["City"]);
+		$('#det-lat').text(detector.info["lat"]);
+		$('#det-lon').text(detector.info["lon"]);
+		$('#det-fatv-in').text(detector.info["fatv_in"]);
+		$('#det-fatv-out').text(detector.info["fatv_out"]);
 	},
 
 	'onHover': function(e) {
@@ -241,7 +256,6 @@ var Selector = {
 		if (detector.info.fatv_in) {
 			target = root_api + 'data/plot/' + detector.info.fatv_in
 			$.getJSON(target, function(flows) {
-				console.log(flows['IN']['detectors']);
 				// Plotly.purge('plot-1');
 				if (self.selected == detector) {
 					Plotly.newPlot('plot-1', [flows['IN']['data'], flows['OUT']['data']], {
@@ -265,7 +279,6 @@ var Selector = {
 		if (detector.info.fatv_out) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_out
 			$.getJSON(target, function(flows) {
-				console.log(flows['IN']['detectors']);
 				// Plotly.purge('plot-2');
 				if (self.selected == detector) {
 					Plotly.newPlot('plot-2', [flows['IN']['data'], flows['OUT']['data']], {
@@ -331,7 +344,7 @@ $.parseParams = function(query) {
 
 $('document').ready(function() {
 	root_api = 'https://2o0pm5fi7f.execute-api.us-west-2.amazonaws.com/alpha/'
-	date = $.parseParams(window.location.search.substr(1)) || ''
+	date = $.parseParams(window.location.search.substr(1)).date || ''
 	selector = Selector.init();
 
 	$('#plot-1').on('plotly_relayout', function(e, edata) {
