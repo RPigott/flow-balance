@@ -13,8 +13,10 @@ s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
 	proxy = event['pathParameters']['proxy']
-	path = proxy.split('/')
+	method = event['requestContext']['httpMethod']
+	logger.info("Handling {} {}".format(method, proxy))
 
+	path = proxy.split('/')
 	if path[0] == 'detectors':
 		return handle_detectors(path)
 	elif path[0] == 'diagnosis':
@@ -23,12 +25,14 @@ def lambda_handler(event, context):
 		return handle_plot(path)
 
 def handle_detectors(path):
-	# _, date = path
-	# if date == 'latest':
-	latest = sorted(ls_key('data/raw/'))[-1]
-	date = latest.split('/')[-1]
+	if len(path) == 2:
+		date = path[1]
+		target = 'data/detectors/' + date
+	else:
+		latest = sorted(ls_key('data/detectors/'))[-1]
+		target = latest
 	
-	df_meta = get_df('data/detectors/{}'.format(date))
+	df_meta = get_df(target)
 	df_meta.rename(
 		columns =  {
 			'FATV IN': 'fatv_in',
@@ -43,16 +47,28 @@ def handle_detectors(path):
 	return proxy_response(body)
 
 def handle_diagnosis(path):
-	latest = sorted(ls_key('data/balance/'))[-1]
+	if len(path) == 2:
+		date = path[1]
+		target = 'data/balance/' + date
+	else:
+		latest = sorted(ls_key('data/balance/'))[-1]
+		target = latest
+	
 	store = io.BytesIO()
-	s3.download_fileobj('flow-balance', latest, store)
+	s3.download_fileobj('flow-balance', target, store)
 
 	body = store.getvalue()
 	return proxy_response(body)
 
 def handle_plot(path):
-	latest = sorted(ls_key('data/flows/'))[-1]
-	df_piv = get_df(latest)
+	if len(path) == 3:
+		date = path[2]
+		target = 'data/flows/' + date
+	else:
+		latest = sorted(ls_key('data/flows/'))[-1]
+		target = latest
+	
+	df_piv = get_df(target)
 	df_piv.columns = pd.to_numeric(df_piv.columns) # df_piv has ids as cols
 	df_piv.index = pd.to_datetime(df_piv.index) # df_piv has timestamp as index
 

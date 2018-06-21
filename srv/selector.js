@@ -82,7 +82,7 @@ var Selector = {
 	'createMarkers': function() {
 		this.detectors = {};
 		var self = this;
-		var target = root_api + 'data/detectors/latest'
+		var target = root_api + 'data/detectors'
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
 				info.loc = [info.lat, info.lon];
