@@ -1,0 +1,25 @@
+version: 0.2
+
+env:
+  variables:
+    BUCKET: "flow-balance"
+
+phases:
+  pre_build:
+    commands:
+      - sudo yum -y update
+      - sudo yum -y upgrade
+      - sudo yum install -y wget gcc gcc-c++ python27-devel python27-virtualenv python27-pip findutils zlib-devel zip git
+      - git config --global credential.helper '!aws codecommit credential-helper $@'
+      - git config --global credential.UseHttpPath true
+
+  build:
+    commands:
+      - build/build-pack lambda/*
+  
+  post_build:
+    commands:
+      - aws s3 sync srv s3://$BUCKET/srv
+      - build/sync-lambda lambda/*
+
+# vim: set ts=2 sw=2:

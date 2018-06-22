@@ -1,0 +1,55 @@
+#!/bin/sh
+
+function buildpack() {
+	# Enter build dir
+	pushd "$1"
+
+	# Start fresh
+	rm -rf env pack
+
+	# Make dummy virtualenv
+	virtualenv env --python=python2.7
+	source env/bin/activate
+
+	# Package fluff
+	pip install --upgrade pip wheel
+	pip install -r "requirements.txt"
+
+	# Fresh packaging area
+	mkdir pack
+
+	# Include what is necessary
+	cp -r env/lib/python2.7/site-packages/* pack/
+	cp -r env/lib64/python2.7/site-packages/* pack/
+
+	# Remove what is not
+	find pack/ -type d -name 'tests' -exec rm -rf {} +
+	find pack/ -name '*.so' | xargs strip
+	find pack/ -name '*.so*' | xargs strip
+	# find pack/ -name '*.pyc' -delete # not really necessary
+	rm -rf pack/pip*
+	rm -rf pack/wheel*
+	rm -rf pack/boto*
+	rm -f  pack/easy_install.py
+
+	# Include the handler
+	cp lambda_function.py pack/
+	cp requirements.txt pack/
+
+	# Pack it up
+	pushd pack
+	zip -FS -r9 ../pack.zip *
+	popd
+	deactivate
+
+	# Clean it up
+	rm -rf env pack
+
+	# Exit build dir
+	popd
+}
+
+while (( $# )); do
+	buildpack "$1"
+	shift
+done

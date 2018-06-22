@@ -254,7 +254,7 @@ var Selector = {
 		}
 
 		if (detector.info.fatv_in) {
-			target = root_api + 'data/plot/' + detector.info.fatv_in
+			var target = root_api + 'data/plot/' + detector.info.fatv_in
 			$.getJSON(target, function(flows) {
 				// Plotly.purge('plot-1');
 				if (self.selected == detector) {

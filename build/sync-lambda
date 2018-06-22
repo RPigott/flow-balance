@@ -1,0 +1,25 @@
+#!/bin/sh
+
+function sync() {
+	if [[ ! -f "$1/pack.zip" ]]; then
+		echo "\"$1/pack.zip\" does not exist."
+		exit 1
+	fi
+
+	pushd "$1"
+	
+	source ./config
+	if [[ -z "$FUNCTION" || -z "$PREFIX" ]]; then
+		echo "Bad config" >&2
+		exit 1
+	fi
+
+	aws s3 cp pack.zip s3://flow-balance/"$PREFIX"
+	aws lambda update-function-code --function-name "$FUNCTION" --s3-bucket "${BUCKET:-flow-balance}" --s3-key "$PREFIX"
+	popd
+}
+
+while (( $# )); do
+	sync "$1"
+	shift
+done
