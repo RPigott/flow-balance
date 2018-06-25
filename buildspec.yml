@@ -9,7 +9,8 @@ phases:
     commands:
       - sudo yum -y update
       - sudo yum -y upgrade
-      - sudo yum install -y wget gcc gcc-c++ python27-devel python27-virtualenv python27-pip findutils zlib-devel zip git
+      - sudo yum install -y wget gcc gcc-c++ python27-devel python27-virtualenv python27-pip
+      - sudo yum install -y findutils zlib-devel zip git
       - git config --global credential.helper '!aws codecommit credential-helper $@'
       - git config --global credential.UseHttpPath true
 
