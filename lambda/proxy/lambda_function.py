@@ -14,19 +14,20 @@ s3 = boto3.client('s3')
 def lambda_handler(event, context):
 	proxy = event['pathParameters']['proxy']
 	method = event['requestContext']['httpMethod']
+	query = event['queryStringParameters'] or {}
 	logger.info("Handling {} {}".format(method, proxy))
 
 	path = proxy.split('/')
 	if path[0] == 'detectors':
-		return handle_detectors(path)
+		return handle_detectors(path, query)
 	elif path[0] == 'diagnosis':
-		return handle_diagnosis(path)
+		return handle_diagnosis(path, query)
 	elif path[0] == 'plot':
-		return handle_plot(path)
+		return handle_plot(path, query)
 
-def handle_detectors(path):
-	if len(path) == 2:
-		date = path[1]
+def handle_detectors(path, query):
+	if query.get("date", ""):
+		date = query['date']
 		target = 'data/detectors/' + date
 	else:
 		latest = sorted(ls_key('data/detectors/'))[-1]
@@ -46,9 +47,9 @@ def handle_detectors(path):
 	body = df_meta.to_json(orient = 'index')
 	return proxy_response(body)
 
-def handle_diagnosis(path):
-	if len(path) == 2:
-		date = path[1]
+def handle_diagnosis(path, query):
+	if query.get("date", ""):
+		date = query['date']
 		target = 'data/balance/' + date
 	else:
 		latest = sorted(ls_key('data/balance/'))[-1]
@@ -60,9 +61,9 @@ def handle_diagnosis(path):
 	body = store.getvalue()
 	return proxy_response(body)
 
-def handle_plot(path):
-	if len(path) == 3:
-		date = path[2]
+def handle_plot(path, query):
+	if query.get("date", ""):
+		date = query['date']
 		target = 'data/flows/' + date
 	else:
 		latest = sorted(ls_key('data/flows/'))[-1]
