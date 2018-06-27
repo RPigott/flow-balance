@@ -68,7 +68,7 @@ var Selector = {
 	'getFATVs': function() {
 		var self = this;
 		this.fatvs = {};
-		var target = root_api + 'info/fatvs';
+		var target = root_api + 'info/fatvs' + '?date=' + window.date;
 		$.getJSON(target, function(json) {
 			$.each(json, function(fid, ids) {
 				var group = $.map(ids['IN'].concat(ids['OUT']), function(id) {
@@ -82,7 +82,7 @@ var Selector = {
 	'createMarkers': function() {
 		this.detectors = {};
 		var self = this;
-		var target = root_api + 'data/detectors'
+		var target = root_api + 'data/detectors' + '?date=' + window.date;
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
 				info.loc = [info.lat, info.lon];
@@ -114,7 +114,7 @@ var Selector = {
 			this.detectors[id].setIcon(this.standardIcon);
 		};
 		var self = this;
-		var target = root_api + 'data/diagnosis'
+		var target = root_api + 'data/diagnosis' + '?date=' + window.date;
 		$.getJSON(target, function(marked) {
 			self.marked = marked;
 			$.each(marked["unknown"], function(idx, det) {
@@ -254,7 +254,7 @@ var Selector = {
 		}
 
 		if (detector.info.fatv_in) {
-			var target = root_api + 'data/plot/' + detector.info.fatv_in
+			var target = root_api + 'data/plot/' + detector.info.fatv_in + '?date=' + window.date;
 			$.getJSON(target, function(flows) {
 				// Plotly.purge('plot-1');
 				if (self.selected == detector) {
@@ -277,7 +277,7 @@ var Selector = {
 		};
 
 		if (detector.info.fatv_out) {
-			var target = root_api + 'data/plot/' + detector.info.fatv_out
+			var target = root_api + 'data/plot/' + detector.info.fatv_out + '?date=' + window.date;
 			$.getJSON(target, function(flows) {
 				// Plotly.purge('plot-2');
 				if (self.selected == detector) {

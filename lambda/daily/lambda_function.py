@@ -10,10 +10,15 @@ from pems.util import revise_meta, rename_locations, fwys
 import boto3, io
 
 def lambda_handler(event, context):
-	date = parse_date(event['time']).date()
-	date = date - dt.timedelta(days = 1) # Always work from yesterday
+	if 'time' in event:
+		date = parse_date(event['time']).date()
+		date = date - dt.timedelta(days = 1) # Always work from yesterday
+	elif 'queryStringParameters' in event:
+		date = parse_date(event['queryStringParameters']['date']).date()
+	else:
+		raise ValueError("Bad invocation event")
+	
 	pdr = PDR()
-
 	# data/detectors update
 	# Get the active station_meta from pems
 	pdr.update_meta('meta', years = [date.year, date.year - 1]) # Look for entries with same and previous year
@@ -61,6 +66,10 @@ def lambda_handler(event, context):
 	df_piv[unobv] = np.nan
 	df_piv = df_piv[df_meta.index]
 	put_df(df_piv, 'data/flows/{:%Y-%m-%d}'.format(date))
+
+	return {
+		'statusCode': 200
+	}
 
 def get_df(key):
 	s3 = boto3.client('s3')
