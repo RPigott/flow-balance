@@ -2,7 +2,7 @@
 This repository contains the source for the flow-balance page accessible through the [data-quality login](https://connected-corridors.berkeley.edu/tool).
 
 ## Goal
-Flow balance aims to identify misplaced or mistuned PeMS detectors by a simple counting method. It is also a convenient portal for a visually summary of detector status and location.
+Flow balance aims to identify misplaced or mistuned PeMS detectors by a simple counting method. It is also a convenient portal for a visual summary of detector status and location.
 
 ## Description
 Detector failures (miscounts) are assumed to be rare, so flow-balance attempts to blame local miscounts on single detectors.
