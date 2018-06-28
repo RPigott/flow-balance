@@ -24,12 +24,16 @@ The red category is a very strong condition, so I believe it is a strong indicat
 What counts as a significant miscount is somewhat subjective, and at the moment is based on a heuristic algorithm that tries to find the relative errors based on the finite capacity of each FATV (FATVs that are spread out have larger capacities). The diagnosis is a target for improvement in the future.
 
 ## Details
-On each analysis day, flow-balance retrieves data from the following sources:
+On each analysis day, flow-balance ([fb-daily](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-daily)) retrieves data from the following sources:
 - Flows and observed statistice from PeMS `station_5min` dataset
-- Detector names, locations and other meta data from from the recent prior `station_meta` dataset.
+- Detector names, locations and other meta data from the most-recent-prior `station_meta` dataset.
 - Accurate detector locations from [info/locations.csv](https://console.aws.amazon.com/s3/buckets/flow-balance/info/?region=us-west-2&tab=overview)
 - Detector FATVs from [info/fatvs.json](https://console.aws.amazon.com/s3/buckets/flow-balance/info/?region=us-west-2&tab=overview)
 
 The location and FATV files do _not_ change automatically. They were dumped from an old version of the aimsun model, and the scripts that did so can be found under the deprecated dash/scripts directory.
 
-Ephemeral data is stored under the data/ prefix, which has a maximum lifetime lifecycle policy to avoid data hoarding.
+Ephemeral data is stored under the data/ prefix, which has a maximum lifetime lifecycle policy to avoid data hoarding. This data is retrieved with the [fb-proxy](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-proxy) lambda function.
+
+The categorization ([fb-analyze](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-analyze)) is triggered when new data appears in the data/ prefix.
+
+The api also supports triggering an analysis (data download + categorization) via HTTP PATCH. See [the api](https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/2o0pm5fi7f/resources)
