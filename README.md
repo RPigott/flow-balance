@@ -36,4 +36,4 @@ Ephemeral data is stored under the data/ prefix, which has a maximum lifetime li
 
 The categorization ([fb-analyze](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-analyze)) is triggered when new data appears in the data/ prefix.
 
-The api also supports triggering an analysis (data download + categorization) via HTTP PATCH. See [the api](https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/2o0pm5fi7f/resources)
+The api also supports triggering an analysis (data download + categorization) via HTTP PATCH. See [the api](https://us-west-2.console.aws.amazon.com/apigateway/home?region=us-west-2#/apis/2o0pm5fi7f/resources).
