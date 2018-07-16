@@ -23,6 +23,8 @@ The red category is a very strong condition, so I believe it is a strong indicat
 
 What counts as a significant miscount is somewhat subjective, and at the moment is based on a heuristic algorithm that tries to find the relative errors based on the finite capacity of each FATV (FATVs that are spread out have larger capacities). The diagnosis is a target for improvement in the future.
 
+To use the flow-balance page, just click on the icon of a detector. The view will zoom to enclose the surrounding neighborhood of the selected detector. The page will present a plot for each FATV the detector belongs to, representing the sum of flow per 5 minutes over the course of the chosen date.
+
 ## Details
 On each analysis day, flow-balance ([fb-daily](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-daily)) retrieves data from the following sources:
 - Flows and observed statistice from PeMS `station_5min` dataset

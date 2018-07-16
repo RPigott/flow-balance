@@ -12,7 +12,7 @@ var Selector = {
 		iconAnchor: [12, 41],
 		popupAnchor: [1, -34],
 		shadowSize: [41, 41],
-		shadowAnchor: [12, 41]  // the same for the shadow
+		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
 	'emptyIcon': L.icon({
@@ -23,7 +23,7 @@ var Selector = {
 		iconAnchor: [12, 41],
 		popupAnchor: [1, -34],
 		shadowSize: [41, 41],
-		shadowAnchor: [12, 41]  // the same for the shadow
+		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
 	'standardIcon': L.icon({
@@ -34,7 +34,7 @@ var Selector = {
 		iconAnchor: [12, 41],
 		popupAnchor: [1, -34],
 		shadowSize: [41, 41],
-		shadowAnchor: [12, 41]  // the same for the shadow
+		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
 	'inIcon': L.icon({
@@ -45,7 +45,7 @@ var Selector = {
 		iconAnchor: [12, 41],
 		popupAnchor: [1, -34],
 		shadowSize: [41, 41],
-		shadowAnchor: [12, 41]  // the same for the shadow
+		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
 	'outIcon': L.icon({
@@ -56,7 +56,7 @@ var Selector = {
 		iconAnchor: [12, 41],
 		popupAnchor: [1, -34],
 		shadowSize: [41, 41],
-		shadowAnchor: [12, 41]  // the same for the shadow
+		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
 	'selectedMarker': L.circleMarker([null, null], {
@@ -113,28 +113,47 @@ var Selector = {
 		for (id in this.marked) {
 			this.detectors[id].setIcon(this.standardIcon);
 		};
+		this.unknownGroup = [];
+		this.unobvGroup = [];
+		this.errorGroup = [];
 		var self = this;
 		var target = root_api + 'data/diagnosis' + '?date=' + window.date;
 		$.getJSON(target, function(marked) {
 			self.marked = marked;
+			var states = {};
 			$.each(marked["unknown"], function(idx, det) {
 				var detector = self.detectors[det];
 				if (detector) {
+					states[detector.id] = "unknown";
 					detector.setIcon(self.outIcon);
 				}
 			});
 			$.each(marked["unobv"], function(idx, det) {
 				var detector = self.detectors[det];
 				if (detector) {
+					states[detector.id] = "unobv";
 					detector.setIcon(self.emptyIcon);
 				}
 			});
 			$.each(marked["error"], function(idx, det) {
 				var detector = self.detectors[det];
 				if (detector) {
+					states[detector.id] = "error";
 					detector.setIcon(self.errorIcon);
 				}
 			});
+			for (det in states) {
+				if (states[det] == "unknown") {
+					self.unknownGroup.push(self.detectors[det]);
+				} else if (states[det] == "unobv") {
+					self.unobvGroup.push(self.detectors[det]);
+				} else if (states[det] == "error") {
+					self.errorGroup.push(self.detectors[det]);
+				}
+			}
+			self.state_layers.push(L.featureGroup(self.unknownGroup));
+			self.state_layers.push(L.featureGroup(self.unobvGroup));
+			self.state_layers.push(L.featureGroup(self.errorGroup));
 		});
 	},
 
@@ -179,6 +198,8 @@ var Selector = {
 		this.map = L.map('leaf-map').setView(this.settings.home, this.settings.homeZoom);
 		this.n_layer = null;
 		this.selected = null;
+		this.state_layers = [];
+		this.active_state = -1;
 		this.marked = {};
 
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
@@ -194,29 +215,38 @@ var Selector = {
 		this.resetButton = L.easyButton('fa-home fa-lg', this.resetView.bind(this));
 		this.resetButton.addTo(this.map);
 
+		this.tagsButton = L.easyButton('fa-tags ta-lg', this.cycleLayers.bind(this));
+		this.tagsButton.addTo(this.map);
+
 		var self = this;
 		this.showHideButton = L.easyButton({
-		    states: [{
-		            stateName: 'hide',
-		            icon:      'fa-eye fa-lg',
-		            title:     'Show only selected neighborhood',
-		            onClick: function(btn, map) {
-		            	if (!!self.n_layer) {
-		            		self.map.removeLayer(self.all_layer);
-		            		self.n_layer.addTo(self.map);
-			                btn.state('show');
-		            	};
-		            }
-		        }, {
-		            stateName: 'show',
-		            icon:      'fa-eye-slash fa-lg',
-		            title:     'Show all detectors',
-		            onClick: function(btn, map) {
-		            	self.map.removeLayer(self.n_layer);
-		            	self.all_layer.addTo(self.map);
-		                btn.state('hide');
-		            }
-		    }]
+			states: [{
+					stateName: 'hide',
+					icon:	   'fa-eye fa-lg',
+					title:	   'Show only selected neighborhood',
+					onClick: function(btn, map) {
+						if (!!self.n_layer) {
+							self.map.removeLayer(self.all_layer);
+							self.n_layer.addTo(self.map);
+							btn.state('show');
+						};
+					}
+				}, {
+					stateName: 'show',
+					icon:	   'fa-eye-slash fa-lg',
+					title:	   'Show all detectors',
+					onClick: function(btn, map) {
+						if (self.n_layer) {
+							self.map.removeLayer(self.n_layer);
+						}
+						if (self.active_state >= 0) {
+							self.map.removeLayer(self.state_layers[self.active_state]);
+							self.active_state = -1;
+						}
+						self.all_layer.addTo(self.map);
+						btn.state('hide');
+					}
+			}]
 		});
 		this.showHideButton.addTo(this.map);
 
@@ -225,6 +255,25 @@ var Selector = {
 
 	'resetView': function(btn, map) {
 		map.fitBounds(this.all_layer.getBounds());
+	},
+
+	'cycleLayers': function(btn, map) {
+		if (this.active_state == -1) {
+			map.removeLayer(this.all_layer);
+			this.showHideButton.state('show');
+			this.active_state += 1
+			this.state_layers[this.active_state].addTo(map);
+		} else {
+			map.removeLayer(this.state_layers[this.active_state])
+			if (this.active_state + 1 >= this.state_layers.length) {
+				this.active_state = -1;
+				this.showHideButton.state('hide');
+				this.all_layer.addTo(map);
+			} else {
+				this.active_state += 1;
+				this.state_layers[this.active_state].addTo(map);
+			}
+		}
 	},
 
 	'describe': function(detector) {
@@ -329,16 +378,16 @@ var re = /([^&=]+)=?([^&]*)/g;
 var decodeRE = /\+/g;  // Regex for replacing addition symbol with a space
 var decode = function (str) {return decodeURIComponent( str.replace(decodeRE, " ") );};
 $.parseParams = function(query) {
-    var params = {}, e;
-    while ( e = re.exec(query) ) { 
-        var k = decode( e[1] ), v = decode( e[2] );
-        if (k.substring(k.length - 2) === '[]') {
-            k = k.substring(0, k.length - 2);
-            (params[k] || (params[k] = [])).push(v);
-        }
-        else params[k] = v;
-    }
-    return params;
+	var params = {}, e;
+	while ( e = re.exec(query) ) { 
+		var k = decode( e[1] ), v = decode( e[2] );
+		if (k.substring(k.length - 2) === '[]') {
+			k = k.substring(0, k.length - 2);
+			(params[k] || (params[k] = [])).push(v);
+		}
+		else params[k] = v;
+	}
+	return params;
 };
 })(jQuery);
 
@@ -348,10 +397,10 @@ $('document').ready(function() {
 	selector = Selector.init();
 
 	$('#plot-1').on('plotly_relayout', function(e, edata) {
-        Plotly.relayout('plot-2', edata);
-    });
+		Plotly.relayout('plot-2', edata);
+	});
 
-    $('#datepicker').datepicker({
-    	maxDate: 0
-    });
+	$('#datepicker').datepicker({
+		maxDate: 0
+	});
 });
