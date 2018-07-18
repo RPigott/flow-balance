@@ -108,12 +108,9 @@ var Selector = {
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
 				info.loc = [info.lat, info.lon];
-				var icon = self.standardIcon;
-				if (!info.fatv_in && !info.fatv_out) {
-					icon = self.peerlessIcon;
-				}
+				var peerless = !info.fatv_in && !info.fatv_out;
 				var marker = L.marker(info.loc, {
-					icon: icon,
+					icon: peerless ? self.peerlessIcon : self.standardIcon,
 					opacity: 0.9
 				});
 				marker.id = id;
@@ -127,6 +124,9 @@ var Selector = {
 				});
 
 				self.detectors[id] = marker;
+				if (peerless) {
+					self.peerlessGroup.push(marker);
+				}
 			});
 
 			//self.markErrors(date);
@@ -139,9 +139,6 @@ var Selector = {
 		for (id in this.marked) {
 			this.detectors[id].setIcon(this.standardIcon);
 		};
-		this.unknownGroup = [];
-		this.unobvGroup = [];
-		this.errorGroup = [];
 		var self = this;
 		var target = root_api + 'data/diagnosis' + '?date=' + window.date;
 		$.getJSON(target, function(marked) {
@@ -180,6 +177,7 @@ var Selector = {
 			}
 			self.state_layers.push(L.featureGroup(self.unknownGroup));
 			self.state_layers.push(L.featureGroup(self.unobvGroup));
+			self.state_layers.push(L.featureGroup(self.peerlessGroup));
 			self.state_layers.push(L.featureGroup(self.errorGroup));
 		});
 	},
@@ -228,6 +226,10 @@ var Selector = {
 		this.state_layers = [];
 		this.active_state = -1;
 		this.marked = {};
+		this.unknownGroup = [];
+		this.unobvGroup = [];
+		this.errorGroup = [];
+		this.peerlessGroup = [];
 
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
 			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
