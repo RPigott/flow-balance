@@ -26,6 +26,28 @@ var Selector = {
 		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
+	'untrackedIcon': L.icon({
+		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
+		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+
+		iconSize: [25, 41],
+		iconAnchor: [12, 41],
+		popupAnchor: [1, -34],
+		shadowSize: [41, 41],
+		shadowAnchor: [12, 41]	// the same for the shadow
+	}),
+
+	'peerlessIcon': L.icon({
+		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-yellow.png',
+		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+
+		iconSize: [25, 41],
+		iconAnchor: [12, 41],
+		popupAnchor: [1, -34],
+		shadowSize: [41, 41],
+		shadowAnchor: [12, 41]	// the same for the shadow
+	}),
+
 	'standardIcon': L.icon({
 		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
 		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -86,8 +108,12 @@ var Selector = {
 		$.getJSON(target, function(json) {
 			$.each(json, function(id, info) {
 				info.loc = [info.lat, info.lon];
+				var icon = self.standardIcon;
+				if (!info.fatv_in && !info.fatv_out) {
+					icon = self.peerlessIcon;
+				}
 				var marker = L.marker(info.loc, {
-					icon: self.standardIcon,
+					icon: icon,
 					opacity: 0.9
 				});
 				marker.id = id;
@@ -135,6 +161,7 @@ var Selector = {
 					detector.setIcon(self.emptyIcon);
 				}
 			});
+
 			$.each(marked["error"], function(idx, det) {
 				var detector = self.detectors[det];
 				if (detector) {
