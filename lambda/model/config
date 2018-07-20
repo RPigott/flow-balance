@@ -1,0 +1,3 @@
+FUNCTION="fb-model"
+PREFIX="lambda/model.zip"
+IGNORE=( networkx )

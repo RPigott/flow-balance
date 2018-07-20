@@ -3,6 +3,7 @@
 function buildpack() {
 	# Enter build dir
 	pushd "$1"
+	source ./config
 
 	# Start fresh
 	rm -rf env pack
@@ -23,8 +24,14 @@ function buildpack() {
 	cp -r env/lib64/python2.7/site-packages/* pack/
 
 	# Remove what is not
-	find pack/ -type d -name 'tests' -exec rm -rf {} +
-	find pack/ -name '*.so' | xargs strip
+	if [ ${#IGNORE[@]} -eq 0 ]; then
+		find pack/ -type d -name 'tests' -exec rm -rf {} +
+	elif [ ${#IGNORE[@]} -eq 1 ]; then
+		find pack/ -not -path "*${IGNORE[0]}*" -type d -name 'tests' -exec rm -rf {} +
+	else
+		find pack/ -not \( -path "*${IGNORE[0]}" $(printf -- '-o -path "*%s*" ' "${IGNORE[@]:1}") \) -type d -name 'tests' -exec rm -rf {} +
+	fi
+
 	find pack/ -name '*.so*' | xargs strip
 	# find pack/ -name '*.pyc' -delete # not really necessary
 	rm -rf pack/pip*
