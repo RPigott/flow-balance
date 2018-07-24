@@ -25,6 +25,13 @@ What counts as a significant miscount is somewhat subjective, and at the moment 
 
 To use the flow-balance page, just click on the icon of a detector. The view will zoom to enclose the surrounding neighborhood of the selected detector. The page will present a plot for each FATV the detector belongs to, representing the sum of flow per 5 minutes over the course of the chosen date.
 
+To avoid confusion about the state of the Aimsun model, only the most recently provided version of the Aimsun model is referenced. To update the model, zip together 'detectors.json', 'junctions.json', and 'sections.json' provided by the Aimsun plugin in the scripts directory and upload it to the s3 bucket with the prefix 'info/model.zip'. For the case where the dumps are placed in a 'model/' subdirectory:
+```
+zip -j model.zip model/*
+aws s3 cp model.zip s3://flow-balance/info/model.zip
+```
+should trigger the update. Model data is used to construct the FATVs and color some detectors, and _not_ to update their visual location on the map. Analysis should be rerun on days of concern following an update to the model data.
+
 ## Details
 On each analysis day, flow-balance ([fb-daily](https://us-west-2.console.aws.amazon.com/lambda/home?region=us-west-2#/functions/fb-daily)) retrieves data from the following sources:
 - Flows and observed statistice from PeMS `station_5min` dataset
