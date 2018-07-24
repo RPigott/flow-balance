@@ -10,28 +10,36 @@ from operator import itemgetter
 import logging
 logger = logging.getLogger(__name__)
 
+
+# model.zip: 'detectors.json'
 # Detectors {id: (pems)
-#	Description, Final Position, First Lane, Last Lane
+#	Description, Final Position, First Lane, Last Lane, External ID (pems)
 #	Start Position, Position, Section ID, ID (model)
 # }
-
+# model.zip: 'junctions.json'
 # Junctions {id: Outgoing, Incoming, Name, Turns,
 #	External ID, Signalized, ID
 # }
-
+# model.zip: 'sections.json'
 # Sections {id: Origin, External ID, Lanes, Name, Destination, ID}
 
 def lambda_handler(event, context):
+	# Retrieve extracted model data, model.zip must have
 	s3 = boto3.client('s3')
 	with tempfile.TemporaryFile() as model:
 		s3.download_fileobj('flow-balance', 'info/model.zip', model)
 		model.seek(0)
 		detectors, junctions, sections = get_djs(model)
 	
+	# Record which detectors appear at all in the model
 	with open('/tmp/tracked.json', 'w') as file:
 		json.dump(list(detectors), file)
-
 	s3.upload_file('/tmp/tracked.json', 'flow-balance', 'info/tracked.json')
+
+	# Record which detectors form closed FATVs
+	df_cfatv = get_fatvs(detectors, junctions, sections)
+	df_cfatv.to_json('/tmp/fatvs.json', orient = 'index')
+	s3.upload_file('/tmp/fatvs.json', 'flow-balance', 'info/fatvs.json')
 
 def get_djs(model):
 	good_ptn = re.compile(r'^7\d+$')
@@ -57,7 +65,7 @@ def get_fatvs(detectors, junctions, sections):
 	# We need to be able to find detectors by their associated sections
 	s2det = defaultdict(list)
 	for pid, det in detectors.items():
-		s2det[int(det['Section ID'])].append(det)
+		s2det[det['Section ID']].append(det)
 
 	# Sections are not the same as edges in the graph,
 	# because there may be more than one detector per section.
@@ -121,7 +129,7 @@ def get_fatvs(detectors, junctions, sections):
 	})
 
 	# Append trivial FATVs contained in each section
-	df_cfatv.append(pd.DataFrame(sfatvs).applymap(lambda g: [g]), ignore_index = True)
+	df_cfatv = df_cfatv.append(pd.DataFrame(sfatvs).applymap(lambda g: [g]), ignore_index = True)
 
 	# Flatten each group of incoming detectors into list of peers with int values
 	flat1 = lambda L: [n for s in L for n in s]
