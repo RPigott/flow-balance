@@ -2,8 +2,9 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 
-import boto3, json, re, tempfile
+import boto3, json, re
 from zipfile import ZipFile
+from tempfile import TemporaryFile
 from collections import defaultdict
 from operator import itemgetter
 
@@ -26,20 +27,21 @@ logger = logging.getLogger(__name__)
 def lambda_handler(event, context):
 	# Retrieve extracted model data, model.zip must have
 	s3 = boto3.client('s3')
-	with tempfile.TemporaryFile() as model:
+	with TemporaryFile() as model:
 		s3.download_fileobj('flow-balance', 'info/model.zip', model)
 		model.seek(0)
 		detectors, junctions, sections = get_djs(model)
 	
 	# Record which detectors appear at all in the model
-	with open('/tmp/tracked.json', 'w') as file:
+	with TemporaryFile('w+') as file:
 		json.dump(list(detectors), file)
-	s3.upload_file('/tmp/tracked.json', 'flow-balance', 'info/tracked.json')
+		s3.upload_fileobj(file, 'flow-balance', 'info/tracked.json')
 
 	# Record which detectors form closed FATVs
 	df_cfatv = get_fatvs(detectors, junctions, sections)
-	df_cfatv.to_json('/tmp/fatvs.json', orient = 'index')
-	s3.upload_file('/tmp/fatvs.json', 'flow-balance', 'info/fatvs.json')
+	with TemporaryFile('w+') as file:
+		df_cfatv.to_json(file, orient = 'index')
+		s3.upload_fileobj(file, 'flow-balance', 'info/fatvs.json')
 
 def get_djs(model):
 	good_ptn = re.compile(r'^7\d+$')
