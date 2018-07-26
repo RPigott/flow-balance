@@ -27,7 +27,7 @@ To use the flow-balance page, just click on the icon of a detector. The view wil
 
 To avoid confusion about the state of the Aimsun model, only the most recently provided version of the Aimsun model is referenced. To update the model, zip together 'detectors.json', 'junctions.json', and 'sections.json' provided by the Aimsun plugin in the scripts directory and upload it to the s3 bucket with the prefix 'info/model.zip'. For the case where the dumps are placed in a 'model/' subdirectory:
 ```
-zip -j model.zip model/*
+zip -j model.zip model/\*
 aws s3 cp model.zip s3://flow-balance/info/model.zip
 ```
 should trigger the update. Model data is used to construct the FATVs and color some detectors, and _not_ to update their visual location on the map. Analysis should be rerun on days of concern following an update to the model data.
