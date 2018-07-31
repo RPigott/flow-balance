@@ -198,6 +198,11 @@ var Selector = {
 	},
 	
 	'fillTable': function (detector) {
+		$.getJSON(root_api + 'data/latest', function(latest) {
+			var date = latest.date;
+			$('#date-val').text(date);
+		});
+
 		$('#det-name').text(detector.info["Name"]);
 		$('#det-id').text(detector.id);
 		$('#det-fwy').text(detector.info["Fwy"]);

@@ -29,3 +29,7 @@
 .highlight {
 	background-color: blue;
 }
+
+#settings {
+	margin: 10px;
+}

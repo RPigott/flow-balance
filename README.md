@@ -17,6 +17,7 @@ Flow balance classifies PeMS detectors with colors. At the moment there are 3 cl
 - Grey: This detector has reported less than 50% mean observation, or all NaN. No data.
 - Orange: This detector reported data, but belongs to a FATV in which at least one NaN was reported that day. No analysis is run on these detectors either.
 - Green: This detector is reporting data, and if it belongs to a FATV, its count agrees with its neighbors.
+- Yellow: This detectors do not belong to a FATV because they are connected to an unmenetered path to the network exterior.
 - Red: This detector has not reported a NaN, all of its neighbors have not reported a NaN, and each neighbor is an unambiguous witness to its failure.
 
 The red category is a very strong condition, so I believe it is a strong indicator of either an error with the detector, or the model the fatvs are based on.
@@ -27,7 +28,7 @@ To use the flow-balance page, just click on the icon of a detector. The view wil
 
 To avoid confusion about the state of the Aimsun model, only the most recently provided version of the Aimsun model is referenced. To update the model, zip together 'detectors.json', 'junctions.json', and 'sections.json' provided by the Aimsun plugin in the scripts directory and upload it to the s3 bucket with the prefix 'info/model.zip'. For the case where the dumps are placed in a 'model/' subdirectory:
 ```
-zip -j model.zip model/\\*
+zip -j model.zip model/*
 aws s3 cp model.zip s3://flow-balance/info/model.zip
 ```
 should trigger the update. Model data is used to construct the FATVs and color some detectors, and _not_ to update their visual location on the map. Analysis should be rerun on days of concern following an update to the model data.

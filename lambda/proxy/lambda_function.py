@@ -20,10 +20,17 @@ def lambda_handler(event, context):
 	path = proxy.split('/')
 	if path[0] == 'detectors':
 		return handle_detectors(path, query)
+	elif path[0] == 'latest':
+		return handle_latest(path, query)
 	elif path[0] == 'diagnosis':
 		return handle_diagnosis(path, query)
 	elif path[0] == 'plot':
 		return handle_plot(path, query)
+
+def handle_latest(path, query):
+	latest = sorted(ls_key('data/detectors'))[-1]
+	date = latest.split('/')[-1]
+	return proxy_response(json.dumps({'date': date}))
 
 def handle_detectors(path, query):
 	if query.get("date", ""):
