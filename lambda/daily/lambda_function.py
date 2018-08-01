@@ -13,8 +13,12 @@ def lambda_handler(event, context):
 	if 'time' in event:
 		date = parse_date(event['time']).date()
 		date = date - dt.timedelta(days = 1) # Always work from yesterday
-	elif 'queryStringParameters' in event:
+	elif event['queryStringParameters'] is not None:
 		date = parse_date(event['queryStringParameters']['date']).date()
+	elif event['httpMethod'] == 'POST':
+		body = event['body']
+		if body:
+			date = parse_date(body.split('=')[1]).date()
 	else:
 		raise ValueError("Bad invocation event")
 	

@@ -198,17 +198,21 @@ var Selector = {
 	},
 	
 	'fillTable': function (detector) {
-		$.getJSON(root_api + 'data/latest', function(latest) {
-			var date = latest.date;
+		if (date) {
 			$('#date-val').text(date);
-		});
+		} else {
+			$.getJSON(root_api + 'data/latest', function(latest) {
+				var date = latest.date;
+				$('#date-val').text(date);
+			});
+		}
 
 		$('#det-name').text(detector.info["Name"]);
 		$('#det-id').text(detector.id);
 		$('#det-fwy').text(detector.info["Fwy"]);
 		$('#det-type').text(detector.info["Type"]);
 		$('#det-dir').text(detector.info["Dir"]);
-		$('#det-county').text(detector.info["County"]);
+		$('#det-lanes').text(detector.info["Lanes"]);
 		$('#det-city').text(detector.info["City"]);
 		$('#det-lat').text(detector.info["lat"]);
 		$('#det-lon').text(detector.info["lon"]);
@@ -437,4 +441,14 @@ $('document').ready(function() {
 	$('#datepicker').datepicker({
 		maxDate: 0
 	});
+
+	$('#date-patch').on('submit', function (e) {
+		e.preventDefault();
+
+		$.ajax({
+			type: 'post',
+			url: root_api + 'analyze',
+			data: $('#date-patch').serialize()
+		})
+	})
 });
