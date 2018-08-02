@@ -182,6 +182,8 @@ var Selector = {
 					self.unobvGroup.push(self.detectors[det]);
 				} else if (states[det] == "error") {
 					self.errorGroup.push(self.detectors[det]);
+				} else if (states[det] == "untracked") {
+					self.untrackedGroup.push(self.detectors[det]);
 				}
 			}
 			self.state_layers.push(L.featureGroup(self.unknownGroup));
