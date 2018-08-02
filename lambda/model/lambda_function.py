@@ -35,12 +35,14 @@ def lambda_handler(event, context):
 	# Record which detectors appear at all in the model
 	with TemporaryFile('w+') as file:
 		json.dump(list(detectors), file)
+		file.seek(0)
 		s3.upload_fileobj(file, 'flow-balance', 'info/tracked.json')
 
 	# Record which detectors form closed FATVs
 	df_cfatv = get_fatvs(detectors, junctions, sections)
 	with TemporaryFile('w+') as file:
 		df_cfatv.to_json(file, orient = 'index')
+		file.seek(0)
 		s3.upload_fileobj(file, 'flow-balance', 'info/fatvs.json')
 
 def get_djs(model):
