@@ -82,12 +82,14 @@ def lambda_handler(event, context):
 
 	# diagnosis += [{"detector": det, "diagnosis": "unknown", "comment": ""} for det in unknown]
 
-	
+	tracked = json.loads(get_str('info/tracked.json')) # Detectors that appear in the model
+
 	unknown = set(df_cfatv[df_cfatv['ERR'].isnull()][['IN', 'OUT']].sum().sum())
 	diagnosis = {
-		'error': imp2,
-		'unobv': list(df_meta.index & unobv),
-		'unknown': list(unknown)
+		'error': imp2, # Diagnosed to be in error
+		'unobv': list(df_meta.index & unobv), # Not providing sufficient data
+		'unknown': list(unknown), # Neighbors not providing sufficient data
+		'untracked': list(set(df_meta.index) - set(tracked)) # Appear in PeMS but not model
 	}
 
 	put_str(json.dumps(diagnosis), 'data/balance/{}'.format(key))
@@ -96,6 +98,13 @@ def put_str(s, key):
 	s3 = boto3.client('s3')
 	store = io.BytesIO(s)
 	s3.upload_fileobj(store, 'flow-balance', key)
+
+def get_str(key):
+	s3 = boto3.client('s3')
+	store = io.BytesIO()
+	s3.download_fileobj('flow-balance', key, store)
+	store.seek(0)
+	return store.getvalue()
 
 def get_df(key):
 	s3 = boto3.client('s3')

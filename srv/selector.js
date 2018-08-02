@@ -166,6 +166,15 @@ var Selector = {
 					detector.setIcon(self.errorIcon);
 				}
 			});
+			
+			$.each(marked["untracked"], function(idx, det) {
+				var detector = self.detectors[det];
+				if (detector) {
+					states[detector.id] = "untracked";
+					detector.setIcon(self.untrackedIcon);
+				}
+			});
+
 			for (det in states) {
 				if (states[det] == "unknown") {
 					self.unknownGroup.push(self.detectors[det]);
@@ -179,6 +188,7 @@ var Selector = {
 			self.state_layers.push(L.featureGroup(self.unobvGroup));
 			self.state_layers.push(L.featureGroup(self.peerlessGroup));
 			self.state_layers.push(L.featureGroup(self.errorGroup));
+			self.state_layers.push(L.featureGroup(self.untrackedGroup));
 		});
 	},
 
@@ -238,6 +248,7 @@ var Selector = {
 		this.unknownGroup = [];
 		this.unobvGroup = [];
 		this.errorGroup = [];
+		this.untrackedGroup = [];
 		this.peerlessGroup = [];
 
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
