@@ -10,6 +10,10 @@ from pems.util import revise_meta, rename_locations, fwys
 import boto3, io
 
 def lambda_handler(event, context):
+	"""
+	Retrieve, restructure, and record raw PeMS data. Desired date is pulled from
+	the event context set back by a day to work nicely with Cloudwatch Event triggers.
+	"""
 	if 'time' in event:
 		date = parse_date(event['time']).date()
 		date = date - dt.timedelta(days = 1) # Always work from yesterday

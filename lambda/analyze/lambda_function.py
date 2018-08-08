@@ -10,6 +10,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 def lambda_handler(event, context):
+	"""
+	Diagnose detectors based on the recorded data in 'data/detectors' so they can be colored.
+	For details see the README.
+	"""
 	record, = event['Records']
 	key = record['s3']['object']['key']
 	key = key.split('/')[-1]

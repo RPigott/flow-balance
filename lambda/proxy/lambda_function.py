@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 s3 = boto3.client('s3')
 
 def lambda_handler(event, context):
+	"""
+	Proxy responses for API Gateway HTTP requests from the flow-balance page.
+	"""
 	proxy = event['pathParameters']['proxy']
 	method = event['requestContext']['httpMethod']
 	query = event['queryStringParameters'] or {}

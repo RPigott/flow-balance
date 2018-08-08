@@ -25,6 +25,9 @@ logger = logging.getLogger(__name__)
 # Sections {id: Origin, External ID, Lanes, Name, Destination, ID}
 
 def lambda_handler(event, context):
+	"""
+	Parse and record Aimsun model features for later use in graph style analyses.
+	"""
 	# Retrieve extracted model data, model.zip must have
 	s3 = boto3.client('s3')
 	with TemporaryFile() as model:
