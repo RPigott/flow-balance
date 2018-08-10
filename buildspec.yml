@@ -9,6 +9,9 @@ phases:
     commands:
       - sudo apt-get -y update
       - sudo apt-get -y upgrade
+      - sudo apt-get install python2-pip python2-dev build-essential
+      - sudo pip install virtualenv
+      - sudo pip install --upgrade pip
       - sudo apt-get install -y findutils zip git
       - git config --global credential.helper '!aws codecommit credential-helper $@'
       - git config --global credential.UseHttpPath true
