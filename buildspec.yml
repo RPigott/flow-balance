@@ -9,7 +9,7 @@ phases:
     commands:
       - sudo apt-get -y update
       - sudo apt-get -y upgrade
-      - sudo apt-get install -y findutils zlib-devel zip git
+      - sudo apt-get install -y findutils zip git
       - git config --global credential.helper '!aws codecommit credential-helper $@'
       - git config --global credential.UseHttpPath true
 
