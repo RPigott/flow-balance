@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function sync() {
 	if [[ ! -f "$1/pack.zip" ]]; then

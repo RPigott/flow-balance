@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 function buildpack() {
 	# Enter build dir
