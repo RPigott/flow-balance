@@ -300,6 +300,7 @@ var Selector = {
 			}]
 		});
 		this.showHideButton.addTo(this.map);
+		this.fillTable(this.detectors[Object.keys(this.detectors)[0]]);
 
 		return this;
 	},

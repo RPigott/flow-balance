@@ -13,6 +13,7 @@
 .plot-container {
 	background-color: #eee;
 	height: 100%;
+	padding-top: 20px;
 }
 
 #detector-info {
@@ -35,6 +36,10 @@ table i {
 	margin-right: 10px;
 }
 
+.highlight {
+	background: #b5e0ff;
+}
+
 .form-label {
 	display: inline-block;
 	min-width: 4em;
@@ -43,10 +48,6 @@ table i {
 
 .det-value {
 	min-width: 12em;
-}
-
-.highlight {
-	background-color: blue;
 }
 
 #settings {
