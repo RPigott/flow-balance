@@ -302,6 +302,7 @@ var Selector = {
 						if (self.active_state >= 0) {
 							self.map.removeLayer(self.state_layers[self.active_state]);
 							self.active_state = -1;
+							$('.legend-tag').removeClass('highlight');
 						}
 						self.all_layer.addTo(self.map);
 						btn.state('hide');
