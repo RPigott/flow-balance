@@ -19,11 +19,24 @@
 	height: 100%;
 }
 
-#description {
+#legend {
+	height: 100%;
+}
+
+table {
 	height: 100%;
 	width: 100%;
 
 	text-align: center;
+}
+
+table i {
+	float: right;
+	margin-right: 10px;
+}
+
+.det-value {
+	min-width: 12em;
 }
 
 .highlight {

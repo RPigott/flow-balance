@@ -62,51 +62,77 @@
 					</tr>
 					<tr>
 						<td>Name</td>
-						<td id="det-name"> </td>
+						<td id="det-name" class="det-value"></td>
 					</tr>
 					<tr>
 						<td>Detector</td>
-						<td id="det-id"> </td>
+						<td id="det-id" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>Freeway</td>
-						<td id="det-fwy"> </td>
+						<td id="det-fwy" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>Type</td>
-						<td id="det-type"> </td>
+						<td id="det-type" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>Direction</td>
-						<td id="det-dir"> </td>
+						<td id="det-dir" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>Lanes</td>
-						<td id="det-lanes"> </td>
+						<td id="det-lanes" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>City</td>
-						<td id="det-city"> </td>
+						<td id="det-city" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>Latitude</td>
-						<td id="det-lat"> <i class="fa fa-pencil" aria-hidden="true"></i></td>
+						<td id="det-lat" class="det-value">
+							<i class="fa fa-pencil" aria-hidden="true"></i>
+						</td>
 					</tr>
 					<tr>
 						<td>Longitude</td>
-						<td id="det-lon"> <i class="fa fa-pencil" aria-hidden="true"></i></td>
+						<td id="det-lon" class="det-value">
+							<i class="fa fa-pencil" aria-hidden="true"></i>
+						</td>
 					</tr>
 					<tr>
 						<td>FATV In</td>
-						<td id="det-fatv-in"> </td>
+						<td id="det-fatv-in" class="det-value"> </td>
 					</tr>
 					<tr>
 						<td>FATV Out</td>
-						<td id="det-fatv-out"> </td>
+						<td id="det-fatv-out" class="det-value"> </td>
 					</tr>
 				</table>
 			</div>
 			<div class="col-xs-9" id="leaf-map"></div>
+			<div class="col-xs-1" id="legend">
+				<table id="legend" class="table-striped table-bordered">
+					<tr title="This detector is not reporting.">
+						<td>Unknown</td><td style="background: #6b6b6b">&nbsp;</td>
+					</tr>
+					<tr title="This detector cannot be qualified based on its peers.">
+						<td>Unobserved</td><td style="background: #c98021">&nbsp;</td>
+					</tr>
+					<tr title="This detector has no peers on the network.">
+						<td>Peerless</td><td style="background: #e0e03c">&nbsp;</td>
+					</tr>
+					<tr title="This detector is acknowledged by PeMS, but not Aimsun.">
+						<td>Untracked</td><td style="background: #9934c3">&nbsp;</td>
+					</tr>
+					<tr title="This detector has a high miscount.">
+						<td>Miscounting</td><td style="background: #b92b2d">&nbsp;</td>
+					</tr>
+					<tr title="This detector is functioning properly.">
+						<td>Clear</td><td style="background: #2fb42c">&nbsp;</td>
+					</tr>
+				</table>
+			</div>
 		</div>
 	</div>
 	<div class="container-fluid">
