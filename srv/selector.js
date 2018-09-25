@@ -87,6 +87,15 @@ var Selector = {
 		radius: 10
 	}),
 
+	'tagStates': [
+		'.unobserved',
+		'.unknown',
+		'.peerless',
+		'.untracked',
+		'.miscounting',
+		'.clear'
+	],
+
 	'getFATVs': function() {
 		var self = this;
 		this.fatvs = {};
@@ -186,11 +195,11 @@ var Selector = {
 					self.untrackedGroup.push(self.detectors[det]);
 				}
 			}
-			self.state_layers.push(L.featureGroup(self.unknownGroup));
 			self.state_layers.push(L.featureGroup(self.unobvGroup));
+			self.state_layers.push(L.featureGroup(self.unknownGroup));
 			self.state_layers.push(L.featureGroup(self.peerlessGroup));
-			self.state_layers.push(L.featureGroup(self.errorGroup));
 			self.state_layers.push(L.featureGroup(self.untrackedGroup));
+			self.state_layers.push(L.featureGroup(self.errorGroup));
 		});
 	},
 
@@ -310,6 +319,7 @@ var Selector = {
 	},
 
 	'cycleLayers': function(btn, map) {
+		$('.legend-tag').removeClass('highlight');
 		if (this.active_state == -1) {
 			map.removeLayer(this.all_layer);
 			this.showHideButton.state('show');
@@ -326,6 +336,7 @@ var Selector = {
 				this.state_layers[this.active_state].addTo(map);
 			}
 		}
+		$(this.tagStates[this.active_state]).addClass('highlight');
 	},
 
 	'describe': function(detector) {

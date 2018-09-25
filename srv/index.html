@@ -116,22 +116,28 @@
 			<div class="col-xs-1" id="legend">
 				<table id="legend" class="table-striped table-bordered">
 					<tr title="This detector is not reporting.">
-						<td>Unknown</td><td style="background: #6b6b6b">&nbsp;</td>
+						<td class="legend-tag unobserved">Unobserved</td>
+						<td style="background: #6b6b6b">&nbsp;</td>
 					</tr>
 					<tr title="This detector cannot be qualified based on its peers.">
-						<td>Unobserved</td><td style="background: #c98021">&nbsp;</td>
+						<td class="legend-tag unknown">Unknown</td>
+						<td style="background: #c98021">&nbsp;</td>
 					</tr>
 					<tr title="This detector has no peers on the network.">
-						<td>Peerless</td><td style="background: #e0e03c">&nbsp;</td>
+						<td class="legend-tag peerless">Peerless</td>
+						<td style="background: #e0e03c">&nbsp;</td>
 					</tr>
 					<tr title="This detector is acknowledged by PeMS, but not Aimsun.">
-						<td>Untracked</td><td style="background: #9934c3">&nbsp;</td>
+						<td class="legend-tag untracked">Untracked</td>
+						<td style="background: #9934c3">&nbsp;</td>
 					</tr>
 					<tr title="This detector has a high miscount.">
-						<td>Miscounting</td><td style="background: #b92b2d">&nbsp;</td>
+						<td class="legend-tag miscounting">Miscounting</td>
+						<td style="background: #b92b2d">&nbsp;</td>
 					</tr>
 					<tr title="This detector is functioning properly.">
-						<td>Clear</td><td style="background: #2fb42c">&nbsp;</td>
+						<td class="legend-tag clear">Clear</td>
+						<td style="background: #2fb42c">&nbsp;</td>
 					</tr>
 				</table>
 			</div>
