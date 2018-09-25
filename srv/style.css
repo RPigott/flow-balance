@@ -35,6 +35,12 @@ table i {
 	margin-right: 10px;
 }
 
+.form-label {
+	display: inline-block;
+	min-width: 4em;
+	text-align: right;
+}
+
 .det-value {
 	min-width: 12em;
 }
