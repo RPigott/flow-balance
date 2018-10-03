@@ -201,6 +201,8 @@ var Selector = {
 			self.state_layers.push(L.featureGroup(self.untrackedGroup));
 			self.state_layers.push(L.featureGroup(self.errorGroup));
 		});
+
+		this.fillTable(this.detectors[Object.keys(this.detectors)[0]]);
 	},
 
 	'onSelect': function(detector) {
@@ -310,7 +312,6 @@ var Selector = {
 			}]
 		});
 		this.showHideButton.addTo(this.map);
-		this.fillTable(this.detectors[Object.keys(this.detectors)[0]]);
 
 		return this;
 	},
@@ -464,10 +465,6 @@ $('document').ready(function() {
 		Plotly.relayout('plot-2', edata);
 	});
 
-	$('#datepicker').datepicker({
-		maxDate: 0
-	});
-
 	$('#date-patch').on('submit', function (e) {
 		e.preventDefault();
 
@@ -476,5 +473,5 @@ $('document').ready(function() {
 			url: root_api + 'analyze',
 			data: $('#date-patch').serialize()
 		})
-	})
+	});
 });
