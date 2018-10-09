@@ -7,7 +7,7 @@ from dateutil.parser import parse as parse_date
 from pems.download import PemsDownloader as PDR
 from pems.util import revise_meta, rename_locations, fwys 
 
-import boto3, io
+import boto3, io, json
 
 def lambda_handler(event, context):
 	"""
@@ -75,9 +75,10 @@ def lambda_handler(event, context):
 	df_piv = df_piv[df_meta.index]
 	put_df(df_piv, 'data/flows/{:%Y-%m-%d}'.format(date))
 
+	body = json.dumps({'message': 'data retrieved'})
 	return {
 		'statusCode': 200,
-		'body': {'message': 'data retrieved'}
+		'body': body
 	}
 
 def get_df(key):
