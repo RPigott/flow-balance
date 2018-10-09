@@ -76,7 +76,8 @@ def lambda_handler(event, context):
 	put_df(df_piv, 'data/flows/{:%Y-%m-%d}'.format(date))
 
 	return {
-		'statusCode': 200
+		'statusCode': 200,
+		'body': {'message': 'data retrieved'}
 	}
 
 def get_df(key):

@@ -24,6 +24,30 @@
 	height: 100%;
 }
 
+.indicator {
+	width: 1em;
+	height: 1em;
+	display: inline-block;
+	border-radius: 50%;
+	border: solid black 2px;
+}
+
+.indicator.idle {
+	background-color: darkgray;
+}
+
+.indicator.fail {
+	background-color: red;
+}
+
+.indicator.busy {
+	background-color: yellow;
+}
+
+.indicator.complete {
+	background-color: limegreen;
+}
+
 table {
 	height: 100%;
 	width: 100%;

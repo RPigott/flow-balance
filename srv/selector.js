@@ -6,6 +6,11 @@ function relog(xhr) {
 	};
 }
 
+function setIndicator(target, state) {
+	target.removeClass('idle fail busy complete');
+	target.addClass(state);
+};
+
 var Selector = {
 	'settings': {
 		'home': [34.146752, -118.029146],
@@ -510,6 +515,7 @@ $('document').ready(function() {
 
 	$('#date-patch').on('submit', function (e) {
 		e.preventDefault();
+		setIndicator($('#date-patch .indicator'), 'busy');
 
 		$.ajax({
 			type: 'post',
@@ -517,7 +523,10 @@ $('document').ready(function() {
 			beforeSend: function (xhr) {
 				xhr.setRequestHeader('Authorization', ID_TOKEN)
 			},
-			data: $('#date-patch').serialize()
+			data: $('#date-patch').serialize(),
+			fail: function() {setIndicator($('#date-patch .indicator'), 'fail');},
+			success: function() {alert('success!'); setIndicator($('#date-patch .indicator'), 'complete');},
+			complete: function() {alert('compelte!');}
 		})
 	});
 });
