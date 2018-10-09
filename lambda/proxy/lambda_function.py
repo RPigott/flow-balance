@@ -31,11 +31,17 @@ def lambda_handler(event, context):
 		return handle_plot(path, query)
 
 def handle_latest(path, query):
+	"""
+	Return the latest cached date of data
+	"""
 	latest = sorted(ls_key('data/detectors'))[-1]
 	date = latest.split('/')[-1]
 	return proxy_response(json.dumps({'date': date}))
 
 def handle_detectors(path, query):
+	"""
+	Return the requested date of detector data if it is available
+	"""
 	if query.get("date", ""):
 		date = query['date']
 		target = 'data/detectors/' + date
@@ -58,6 +64,9 @@ def handle_detectors(path, query):
 	return proxy_response(body)
 
 def handle_diagnosis(path, query):
+	"""
+	Return diagnosis labels for all detectors on date
+	"""
 	if query.get("date", ""):
 		date = query['date']
 		target = 'data/balance/' + date
@@ -72,6 +81,9 @@ def handle_diagnosis(path, query):
 	return proxy_response(body)
 
 def handle_plot(path, query):
+	"""
+	Return JSON plot data
+	"""
 	if query.get("date", ""):
 		date = query['date']
 		target = 'data/flows/' + date

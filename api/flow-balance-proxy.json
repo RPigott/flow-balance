@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "2018-08-01T18:49:11Z",
+    "version": "2018-10-09T05:48:10Z",
     "title": "flow-balance-proxy"
   },
   "host": "2o0pm5fi7f.execute-api.us-west-2.amazonaws.com",
@@ -81,10 +81,10 @@
               }
             }
           },
-          "passthroughBehavior": "when_no_match",
           "requestTemplates": {
             "application/json": "{\"statusCode\": 200}"
           },
+          "passthroughBehavior": "when_no_match",
           "type": "mock"
         }
       },
@@ -141,6 +141,11 @@
             "description": "500 response"
           }
         },
+        "security": [
+          {
+            "cc-path": []
+          }
+        ],
         "x-amazon-apigateway-integration": {
           "credentials": "arn:aws:iam::009754741562:role/API-Gateway-service-role",
           "uri": "arn:aws:apigateway:us-west-2:s3:path/{bucket}",
@@ -205,10 +210,10 @@
               }
             }
           },
-          "passthroughBehavior": "when_no_match",
           "requestTemplates": {
             "application/json": "{\"statusCode\": 200}"
           },
+          "passthroughBehavior": "when_no_match",
           "type": "mock"
         }
       },
@@ -259,6 +264,11 @@
             }
           }
         },
+        "security": [
+          {
+            "cc-path": []
+          }
+        ],
         "x-amazon-apigateway-integration": {
           "uri": "arn:aws:apigateway:us-west-2:lambda:path/2015-03-31/functions/arn:aws:lambda:us-west-2:009754741562:function:fb-proxy/invocations",
           "responses": {
@@ -351,12 +361,26 @@
               }
             }
           },
-          "passthroughBehavior": "when_no_match",
           "requestTemplates": {
             "application/json": "{\"statusCode\": 200}"
           },
+          "passthroughBehavior": "when_no_match",
           "type": "mock"
         }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "cc-path": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "x-amazon-apigateway-authtype": "cognito_user_pools",
+      "x-amazon-apigateway-authorizer": {
+        "providerARNs": [
+          "arn:aws:cognito-idp:us-west-2:009754741562:userpool/us-west-2_8dkAC0Tg4"
+        ],
+        "type": "cognito_user_pools"
       }
     }
   },

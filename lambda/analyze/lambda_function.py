@@ -14,6 +14,7 @@ def lambda_handler(event, context):
 	Diagnose detectors based on the recorded data in 'data/detectors' so they can be colored.
 	For details see the README.
 	"""
+	# Get the data of interest
 	record, = event['Records']
 	key = record['s3']['object']['key']
 	key = key.split('/')[-1]
@@ -25,13 +26,14 @@ def lambda_handler(event, context):
 
 	df_piv = df_day.pivot('Timestamp', 'Station', 'Flow')
 
+	# Only work with detectors with >50% mean observation
 	obv = df_day.pivot('Timestamp', 'Station', 'Observed').mean() > 50
 	unobv = obv[~obv].index
 	df_piv[unobv] = np.nan
 
 	df_cfatv = get_cfatv()
 	
-	# Identify imbalanced detectors
+	# Record error and volume per fatv
 	df_cfatv['ERR'] = np.nan
 	df_cfatv['VOL'] = np.nan
 	df_cfatv['DIF'] = np.nan
@@ -48,8 +50,8 @@ def lambda_handler(event, context):
 		df_cfatv.loc[idx, 'DIF'] = ins - outs
 		df_cfatv.loc[idx, 'VOL'] = ins + outs
 		df_cfatv.loc[idx, 'ERR'] = abs(ins - outs) / (ins + outs)
-	imb = df_cfatv[df_cfatv['ERR'] > 0.05] # TODO: magic
 	
+	# Identify implicated detectors, start at 2.5% error
 	imp1, imp2 = [], []
 	for idx, fatv in df_cfatv[df_cfatv['ERR'] > 0.025].iterrows(): # TODO: magic
 		neighbors = {}
@@ -62,30 +64,26 @@ def lambda_handler(event, context):
 	
 		for det, neighbor in neighbors.items():
 			pair = df_cfatv.loc[[idx, neighbor]]
+			# Ignore fatvs with low error, unlikely to be the fault of multiple
 			if pair.loc[neighbor]['ERR'] < 0.01: # TODO: magic
 				continue
 			temp = pair.sum()
 			temp['ERR'] = abs(temp['DIF'])/temp['VOL']
-	
+			# If combining FATVs reduces error by >85%, blame the mutual neighbor
 			if temp['ERR'] < 0.15 * fatv['ERR']: # TODO: magic
 				if det in imp1:
 					imp2.append(det)
 				imp1.append(det)
 				logger.info("{} implicates {} from {}".format(neighbor, det, idx))
 
+	# Record miscount for each fatv
 	infatvs = df_meta.loc[imp2, 'FATV IN']
 	outfatvs = df_meta.loc[imp2, 'FATV OUT']
-
 	invals = df_cfatv.loc[infatvs, 'DIF'].values
 	outvals = df_cfatv.loc[outfatvs, 'DIF'].values
+	miscount = outvals - invals
 
-	miscount = (outvals - invals)
-
-	# diagnosis = [{"detector": det, "diagnosis": "error", "miscount": m, "comment": ""} for det, m in zip(imp2, miscount)]
-	# diagnosis += [{"detector": det, "diagnosis": "unobv", "comment": ""} for det in (df_meta.index & unobv)]
-
-	# diagnosis += [{"detector": det, "diagnosis": "unknown", "comment": ""} for det in unknown]
-
+	# Report findings to s3
 	tracked = json.loads(get_str('info/tracked.json')) # Detectors that appear in the model
 
 	unknown = set(df_cfatv[df_cfatv['ERR'].isnull()][['IN', 'OUT']].sum().sum())
