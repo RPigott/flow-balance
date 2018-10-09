@@ -1,9 +1,17 @@
+function relog(xhr) {
+	// Decide to relog on auth failure
+	// 401 = unauth, 403 = expired
+	if (xhr.status == 401 || xhr.status == 403) {
+		window.location = "https://connected-corridors.berkeley.edu/tool";
+	};
+}
+
 var Selector = {
 	'settings': {
 		'home': [34.146752, -118.029146],
 		'homeZoom': 12
 	},
-
+	// {{{ Icons
 	'errorIcon': L.icon({
 		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
 		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -80,6 +88,7 @@ var Selector = {
 		shadowSize: [41, 41],
 		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
+	// }}}	
 
 	'selectedMarker': L.circleMarker([null, null], {
 		color: '#5577aa',
@@ -114,33 +123,41 @@ var Selector = {
 		this.detectors = {};
 		var self = this;
 		var target = root_api + 'data/detectors' + '?date=' + window.date;
-		$.getJSON(target, function(json) {
-			$.each(json, function(id, info) {
-				info.loc = [info.lat, info.lon];
-				var peerless = !info.fatv_in && !info.fatv_out;
-				var marker = L.marker(info.loc, {
-					icon: peerless ? self.peerlessIcon : self.standardIcon,
-					opacity: 0.9
+		$.ajax({
+			dataType: 'json',
+			url: target,
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader('Authorization', ID_TOKEN)
+			},
+			error: relog,
+			success: function(json) {
+				$.each(json, function(id, info) {
+					info.loc = [info.lat, info.lon];
+					var peerless = !info.fatv_in && !info.fatv_out;
+					var marker = L.marker(info.loc, {
+						icon: peerless ? self.peerlessIcon : self.standardIcon,
+						opacity: 0.9
+					});
+					marker.id = id;
+					marker.info = info;
+
+					marker.bindPopup(marker.id);
+					marker.on({
+						'click': function(e) {self.onSelect(this)},
+						'mouseover': self.onHover,
+						'mouseout': self.onExit,
+					});
+
+					self.detectors[id] = marker;
+					if (peerless) {
+						self.peerlessGroup.push(marker);
+					}
 				});
-				marker.id = id;
-				marker.info = info;
 
-				marker.bindPopup(marker.id);
-				marker.on({
-					'click': function(e) {self.onSelect(this)},
-					'mouseover': self.onHover,
-					'mouseout': self.onExit,
-				});
-
-				self.detectors[id] = marker;
-				if (peerless) {
-					self.peerlessGroup.push(marker);
-				}
-			});
-
-			//self.markErrors(date);
-			self.all_layer = L.featureGroup($.map(self.detectors, function(det) {return det;}));
-			self.all_layer.addTo(self.map);
+				//self.markErrors(date);
+				self.all_layer = L.featureGroup($.map(self.detectors, function(det) {return det;}));
+				self.all_layer.addTo(self.map);
+			}
 		}).then(this.getFATVs.bind(this)).then(this.markErrors.bind(this));
 	},
 
@@ -150,56 +167,64 @@ var Selector = {
 		};
 		var self = this;
 		var target = root_api + 'data/diagnosis' + '?date=' + window.date;
-		$.getJSON(target, function(marked) {
-			self.marked = marked;
-			var states = {};
-			$.each(marked["unknown"], function(idx, det) {
-				var detector = self.detectors[det];
-				if (detector) {
-					states[detector.id] = "unknown";
-					detector.setIcon(self.outIcon);
-				}
-			});
-			$.each(marked["unobv"], function(idx, det) {
-				var detector = self.detectors[det];
-				if (detector) {
-					states[detector.id] = "unobv";
-					detector.setIcon(self.emptyIcon);
-				}
-			});
+		$.ajax({
+			url: target,
+			dataType: 'json',
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader('Authorization', ID_TOKEN)
+			},
+			error: relog,
+			success: function(marked) {
+				self.marked = marked;
+				var states = {};
+				$.each(marked["unknown"], function(idx, det) {
+					var detector = self.detectors[det];
+					if (detector) {
+						states[detector.id] = "unknown";
+						detector.setIcon(self.outIcon);
+					}
+				});
+				$.each(marked["unobv"], function(idx, det) {
+					var detector = self.detectors[det];
+					if (detector) {
+						states[detector.id] = "unobv";
+						detector.setIcon(self.emptyIcon);
+					}
+				});
 
-			$.each(marked["error"], function(idx, det) {
-				var detector = self.detectors[det];
-				if (detector) {
-					states[detector.id] = "error";
-					detector.setIcon(self.errorIcon);
-				}
-			});
-			
-			$.each(marked["untracked"], function(idx, det) {
-				var detector = self.detectors[det];
-				if (detector) {
-					states[detector.id] = "untracked";
-					detector.setIcon(self.untrackedIcon);
-				}
-			});
+				$.each(marked["error"], function(idx, det) {
+					var detector = self.detectors[det];
+					if (detector) {
+						states[detector.id] = "error";
+						detector.setIcon(self.errorIcon);
+					}
+				});
 
-			for (det in states) {
-				if (states[det] == "unknown") {
-					self.unknownGroup.push(self.detectors[det]);
-				} else if (states[det] == "unobv") {
-					self.unobvGroup.push(self.detectors[det]);
-				} else if (states[det] == "error") {
-					self.errorGroup.push(self.detectors[det]);
-				} else if (states[det] == "untracked") {
-					self.untrackedGroup.push(self.detectors[det]);
+				$.each(marked["untracked"], function(idx, det) {
+					var detector = self.detectors[det];
+					if (detector) {
+						states[detector.id] = "untracked";
+						detector.setIcon(self.untrackedIcon);
+					}
+				});
+
+				for (det in states) {
+					if (states[det] == "unknown") {
+						self.unknownGroup.push(self.detectors[det]);
+					} else if (states[det] == "unobv") {
+						self.unobvGroup.push(self.detectors[det]);
+					} else if (states[det] == "error") {
+						self.errorGroup.push(self.detectors[det]);
+					} else if (states[det] == "untracked") {
+						self.untrackedGroup.push(self.detectors[det]);
+					}
 				}
+				self.state_layers.push(L.featureGroup(self.unobvGroup));
+				self.state_layers.push(L.featureGroup(self.unknownGroup));
+				self.state_layers.push(L.featureGroup(self.peerlessGroup));
+				self.state_layers.push(L.featureGroup(self.untrackedGroup));
+				self.state_layers.push(L.featureGroup(self.errorGroup));
 			}
-			self.state_layers.push(L.featureGroup(self.unobvGroup));
-			self.state_layers.push(L.featureGroup(self.unknownGroup));
-			self.state_layers.push(L.featureGroup(self.peerlessGroup));
-			self.state_layers.push(L.featureGroup(self.untrackedGroup));
-			self.state_layers.push(L.featureGroup(self.errorGroup));
 		});
 
 		this.fillTable(this.detectors[Object.keys(this.detectors)[0]]);
@@ -214,19 +239,26 @@ var Selector = {
 		};
 
 		this.selected = detector;
-		this.describe(detector);
+		this.fillTable(detector);
 		this.showPlots(detector, old);
 		this.showNeighborhood(detector)
-		this.fillTable(detector);
 	},
 	
 	'fillTable': function (detector) {
 		if (date) {
 			$('#date-val').text(date);
 		} else {
-			$.getJSON(root_api + 'data/latest', function(latest) {
-				var date = latest.date;
-				$('#date-val').text(date);
+			$.ajax({
+				url: root_api + 'data/latest',
+				dataType: 'json',
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', ID_TOKEN)
+				},
+				error: relog,
+				success: function(latest) {
+					var date = latest.date;
+					$('#date-val').text(date);
+				}
 			});
 		}
 
@@ -252,6 +284,7 @@ var Selector = {
 	},
 
 	'init': function() {
+
 		this.map = L.map('leaf-map').setView(this.settings.home, this.settings.homeZoom);
 		this.n_layer = null;
 		this.selected = null;
@@ -341,17 +374,8 @@ var Selector = {
 		$(this.tagStates[this.active_state]).addClass('highlight');
 	},
 
-	'describe': function(detector) {
-		var div = $('#detector-info');
-		$.ajax({
-			'url': '/detector/' + detector.id,
-			'success': function(data, status, jqxhr) {
-				div.html(data);
-			}
-		});
-	},
-
 	'showPlots': function(detector, old) {
+
 		var self = this;
 
 		function titleize(dets) {
@@ -369,22 +393,29 @@ var Selector = {
 
 		if (detector.info.fatv_in) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_in + '?date=' + window.date;
-			$.getJSON(target, function(flows) {
-				// Plotly.purge('plot-1');
-				if (self.selected == detector) {
-					Plotly.newPlot('plot-1', [flows['IN']['data'], flows['OUT']['data']], {
-						'title': 'FATV ' + detector.info.fatv_in + '<br>' +
-						'IN: ' + titleize(flows['IN']['detectors']).join(', ') + '<br>' +
-						'OUT: ' + titleize(flows['OUT']['detectors']).join(', '),
+			$.ajax({
+				url: target,
+				dataType: 'json',
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', ID_TOKEN)
+				},
+				success: function(flows) {
+					// Plotly.purge('plot-1');
+					if (self.selected == detector) {
+						Plotly.newPlot('plot-1', [flows['IN']['data'], flows['OUT']['data']], {
+							'title': 'FATV ' + detector.info.fatv_in + '<br>' +
+							'IN: ' + titleize(flows['IN']['detectors']).join(', ') + '<br>' +
+							'OUT: ' + titleize(flows['OUT']['detectors']).join(', '),
 
-						'xaxis': {
-							'title': 'Time'
-						},
-						'yaxis': {
-							'title': 'Vehicles / 5min'
-						}
-					});
-				};
+							'xaxis': {
+								'title': 'Time'
+							},
+							'yaxis': {
+								'title': 'Vehicles / 5min'
+							}
+						});
+					};
+				}
 			}).fail(function (jqxhr, textStatus, errorThrown) {console.log(textStatus, errorThrown)});
 		} else {
 			Plotly.purge('plot-1');
@@ -392,22 +423,29 @@ var Selector = {
 
 		if (detector.info.fatv_out) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_out + '?date=' + window.date;
-			$.getJSON(target, function(flows) {
-				// Plotly.purge('plot-2');
-				if (self.selected == detector) {
-					Plotly.newPlot('plot-2', [flows['IN']['data'], flows['OUT']['data']], {
-						'title': 'FATV ' + detector.info.fatv_out + '<br>' +
-						'IN: ' + titleize(flows['IN']['detectors']).join(', ') + '<br>' +
-						'OUT: ' + titleize(flows['OUT']['detectors']).join(', '),
+			$.ajax({
+				url: target,
+				dataType: 'json',
+				beforeSend: function (xhr) {
+					xhr.setRequestHeader('Authorization', ID_TOKEN)
+				},
+				success: function(flows) {
+					// Plotly.purge('plot-2');
+					if (self.selected == detector) {
+						Plotly.newPlot('plot-2', [flows['IN']['data'], flows['OUT']['data']], {
+							'title': 'FATV ' + detector.info.fatv_out + '<br>' +
+							'IN: ' + titleize(flows['IN']['detectors']).join(', ') + '<br>' +
+							'OUT: ' + titleize(flows['OUT']['detectors']).join(', '),
 
-						'xaxis': {
-							'title': 'Time'
-						},
-						'yaxis': {
-							'title': 'Vehicles / 5min'
-						}
-					});
-				};
+							'xaxis': {
+								'title': 'Time'
+							},
+							'yaxis': {
+								'title': 'Vehicles / 5min'
+							}
+						});
+					};
+				}
 			});
 		} else {
 			Plotly.purge('plot-2')
@@ -459,6 +497,11 @@ $.parseParams = function(query) {
 $('document').ready(function() {
 	root_api = 'https://2o0pm5fi7f.execute-api.us-west-2.amazonaws.com/alpha/'
 	date = $.parseParams(window.location.search.substr(1)).date || ''
+	
+	ID_TOKEN = window.location.hash.substr(1).split('&')[0].split('=')[1] || window.sessionStorage["id_token"];
+	window.sessionStorage["id_token"] = ID_TOKEN;
+	window.location.hash = '';
+
 	selector = Selector.init();
 
 	$('#plot-1').on('plotly_relayout', function(e, edata) {
@@ -471,7 +514,12 @@ $('document').ready(function() {
 		$.ajax({
 			type: 'post',
 			url: root_api + 'analyze',
+			beforeSend: function (xhr) {
+				xhr.setRequestHeader('Authorization', ID_TOKEN)
+			},
 			data: $('#date-patch').serialize()
 		})
 	});
 });
+
+// vim: set fdm=marker:
