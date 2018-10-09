@@ -525,8 +525,7 @@ $('document').ready(function() {
 			},
 			data: $('#date-patch').serialize(),
 			fail: function() {setIndicator($('#date-patch .indicator'), 'fail');},
-			success: function() {alert('success!'); setIndicator($('#date-patch .indicator'), 'complete');},
-			complete: function() {alert('compelte!');}
+			success: function() {setIndicator($('#date-patch .indicator'), 'complete');}
 		})
 	});
 });
