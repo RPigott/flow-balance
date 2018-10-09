@@ -78,6 +78,7 @@ def lambda_handler(event, context):
 	body = json.dumps({'message': 'data retrieved'})
 	return {
 		'statusCode': 200,
+		'headers': {'access-control-allow-origin': '*'}, # Not handled by api gateway integrations??
 		'body': body
 	}
 
