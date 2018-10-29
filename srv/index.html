@@ -110,27 +110,27 @@
 			<div class="col-xs-9" id="leaf-map"></div>
 			<div class="col-xs-1" id="legend">
 				<table id="legend" class="table-striped table-bordered">
-					<tr title="This detector is not reporting.">
+					<tr title="This detector reported less than 50% of expected data for this day.">
 						<td class="legend-tag unobserved">Unobserved</td>
 						<td style="background: #6b6b6b">&nbsp;</td>
 					</tr>
-					<tr title="This detector cannot be qualified based on its peers.">
+					<tr title="This detector cannot be evaluated based on available data for this day.">
 						<td class="legend-tag unknown">Unknown</td>
 						<td style="background: #c98021">&nbsp;</td>
 					</tr>
-					<tr title="This detector has no peers on the network.">
+					<tr title="This detector cannot be evaluated based on the current network configuration.">
 						<td class="legend-tag peerless">Peerless</td>
 						<td style="background: #e0e03c">&nbsp;</td>
 					</tr>
-					<tr title="This detector is acknowledged by PeMS, but not Aimsun.">
+					<tr title="This detector exists in PeMS but is not yet included in the current network configuration.">
 						<td class="legend-tag untracked">Untracked</td>
 						<td style="background: #9934c3">&nbsp;</td>
 					</tr>
-					<tr title="This detector has a high miscount.">
+					<tr title="This detector appears to be over- or under-counting by over 2.5% based on comparison with its peers.">
 						<td class="legend-tag miscounting">Miscounting</td>
 						<td style="background: #b92b2d">&nbsp;</td>
 					</tr>
-					<tr title="This detector is functioning properly.">
+					<tr title="This detector provides data that is consistent with its peers.">
 						<td class="legend-tag clear">Clear</td>
 						<td style="background: #2fb42c">&nbsp;</td>
 					</tr>
