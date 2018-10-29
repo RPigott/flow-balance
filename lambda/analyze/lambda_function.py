@@ -58,13 +58,13 @@ def lambda_handler(event, context):
 		neighbors = {}
 		for det in fatv['IN']:
 			nidx = df_cfatv[df_cfatv['OUT'].map(lambda ds: det in ds)].index
-			if nidx:
+			if not nidx.empty:
 				neighbors[det] = nidx[0]
 			else:
 				singleton.append(det)
 		for det in fatv['OUT']:
 			nidx = df_cfatv[df_cfatv['IN'].map(lambda ds: det in ds)].index
-			if nidx:
+			if not nidx.empty:
 				neighbors[det] = nidx[0]
 			else:
 				singleton.append(det)
