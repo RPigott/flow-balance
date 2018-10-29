@@ -100,7 +100,7 @@ def lambda_handler(event, context):
 		'unobv': list(df_meta.index & unobv), # Not providing sufficient data
 		'unknown': list(unknown), # Neighbors not providing sufficient data
 		'untracked': list(set(df_meta.index) - set(tracked)), # Appear in PeMS but not model
-		'singleton': singleton, # Belong only to one FATV
+		'singleton': list(singleton), # Belong only to one FATV
 	}
 
 	put_str(json.dumps(diagnosis), 'data/balance/{}'.format(key))
