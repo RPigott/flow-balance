@@ -80,7 +80,7 @@ def lambda_handler(event, context):
 			if temp['ERR'] < 0.15 * fatv['ERR']: # TODO: magic
 				if det in imp1:
 					imp2.append(det)
-					singleton -= set(temp['IN']) + set(temp['OUT'])
+					singleton -= set(temp['IN']) | set(temp['OUT'])
 				imp1.append(det)
 				logger.info("{} implicates {} from {}".format(neighbor, det, idx))
 
