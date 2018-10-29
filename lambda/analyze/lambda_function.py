@@ -52,15 +52,22 @@ def lambda_handler(event, context):
 		df_cfatv.loc[idx, 'ERR'] = abs(ins - outs) / (ins + outs)
 	
 	# Identify implicated detectors, start at 2.5% error
+	singleton = []
 	imp1, imp2 = [], []
 	for idx, fatv in df_cfatv[df_cfatv['ERR'] > 0.025].iterrows(): # TODO: magic
 		neighbors = {}
 		for det in fatv['IN']:
-			for nidx in df_cfatv[df_cfatv['OUT'].map(lambda ds: det in ds)].index:
-				neighbors[det] = nidx
+			nidx = df_cfatv[df_cfatv['OUT'].map(lambda ds: det in ds)].index
+			if nidx:
+				neighbors[det] = nidx[0]
+			else:
+				singleton.append(det)
 		for det in fatv['OUT']:
-			for nidx in df_cfatv[df_cfatv['IN'].map(lambda ds: det in ds)].index:
-				neighbors[det] = nidx
+			nidx = df_cfatv[df_cfatv['IN'].map(lambda ds: det in ds)].index
+			if nidx:
+				neighbors[det] = nidx[0]
+			else:
+				singleton.append(det)
 	
 		for det, neighbor in neighbors.items():
 			pair = df_cfatv.loc[[idx, neighbor]]
@@ -91,7 +98,8 @@ def lambda_handler(event, context):
 		'error': imp2, # Diagnosed to be in error
 		'unobv': list(df_meta.index & unobv), # Not providing sufficient data
 		'unknown': list(unknown), # Neighbors not providing sufficient data
-		'untracked': list(set(df_meta.index) - set(tracked)) # Appear in PeMS but not model
+		'untracked': list(set(df_meta.index) - set(tracked)), # Appear in PeMS but not model
+		'singleton': singleton, # Belong only to one FATV
 	}
 
 	put_str(json.dumps(diagnosis), 'data/balance/{}'.format(key))

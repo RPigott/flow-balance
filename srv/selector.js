@@ -72,7 +72,7 @@ var Selector = {
 		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
-	'inIcon': L.icon({
+	'edgeIcon': L.icon({
 		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
 		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
 
@@ -83,7 +83,7 @@ var Selector = {
 		shadowAnchor: [12, 41]	// the same for the shadow
 	}),
 
-	'outIcon': L.icon({
+	'unknownIcon': L.icon({
 		iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
 		shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
 
@@ -186,7 +186,7 @@ var Selector = {
 					var detector = self.detectors[det];
 					if (detector) {
 						states[detector.id] = "unknown";
-						detector.setIcon(self.outIcon);
+						detector.setIcon(self.unknownIcon);
 					}
 				});
 				$.each(marked["unobv"], function(idx, det) {
