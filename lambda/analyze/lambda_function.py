@@ -52,7 +52,7 @@ def lambda_handler(event, context):
 		df_cfatv.loc[idx, 'ERR'] = abs(ins - outs) / (ins + outs)
 	
 	# Identify implicated detectors, start at 2.5% error
-	singleton = []
+	singleton = set()
 	imp1, imp2 = [], []
 	for idx, fatv in df_cfatv[df_cfatv['ERR'] > 0.025].iterrows(): # TODO: magic
 		neighbors = {}
@@ -61,13 +61,13 @@ def lambda_handler(event, context):
 			if not nidx.empty:
 				neighbors[det] = nidx[0]
 			else:
-				singleton.append(det)
+				singleton.add(det)
 		for det in fatv['OUT']:
 			nidx = df_cfatv[df_cfatv['IN'].map(lambda ds: det in ds)].index
 			if not nidx.empty:
 				neighbors[det] = nidx[0]
 			else:
-				singleton.append(det)
+				singleton.add(det)
 	
 		for det, neighbor in neighbors.items():
 			pair = df_cfatv.loc[[idx, neighbor]]
@@ -80,6 +80,7 @@ def lambda_handler(event, context):
 			if temp['ERR'] < 0.15 * fatv['ERR']: # TODO: magic
 				if det in imp1:
 					imp2.append(det)
+					singleton -= set(temp['IN']) + set(temp['OUT'])
 				imp1.append(det)
 				logger.info("{} implicates {} from {}".format(neighbor, det, idx))
 
