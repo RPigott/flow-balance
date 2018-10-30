@@ -106,6 +106,7 @@ var Selector = {
 		'.unknown',
 		'.peerless',
 		'.untracked',
+		'.singleton',
 		'.miscounting',
 		'.clear'
 	],
@@ -213,6 +214,15 @@ var Selector = {
 					}
 				});
 
+				$.each(marked["singleton"], function(idx, det) {
+					var detector = self.detectors[det];
+					if (detector) {
+						states[detector.id] = "singleton";
+						detector.setIcon(self.edgeIcon);
+					}
+				});
+
+
 				for (det in states) {
 					if (states[det] == "unknown") {
 						self.unknownGroup.push(self.detectors[det]);
@@ -222,12 +232,15 @@ var Selector = {
 						self.errorGroup.push(self.detectors[det]);
 					} else if (states[det] == "untracked") {
 						self.untrackedGroup.push(self.detectors[det]);
+					} else if (states[det] == "singleton") {
+						self.edgeGroup.push(self.detectors[det]);
 					}
 				}
 				self.state_layers.push(L.featureGroup(self.unobvGroup));
 				self.state_layers.push(L.featureGroup(self.unknownGroup));
 				self.state_layers.push(L.featureGroup(self.peerlessGroup));
 				self.state_layers.push(L.featureGroup(self.untrackedGroup));
+				self.state_layers.push(L.featureGroup(self.edgeGroup));
 				self.state_layers.push(L.featureGroup(self.errorGroup));
 			}
 		});
@@ -300,6 +313,7 @@ var Selector = {
 		this.unobvGroup = [];
 		this.errorGroup = [];
 		this.untrackedGroup = [];
+		this.edgeGroup = [];
 		this.peerlessGroup = [];
 
 		L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
