@@ -39,11 +39,17 @@
 	<div class="container-fluid">
 		<div id="settings" class="row">
 			<form>
+				<i class="fa fa-info-circle" aria-hidden="true"
+					title="Change display to feature data from a previously analyzed date. The last 3 days are always available.">
+				</i>
 				<span class="form-label">View: </span>
 				<input name=date type=date>
 				<input type=submit>
 			</form>
 			<form id=date-patch>
+				<i class="fa fa-info-circle" aria-hidden="true"
+					title="Request the analysis of a new date. Analyses are available for 3 days after completion.">
+				</i>
 				<span class="form-label">Analyze: </span>
 				<input name=date type=date>
 				<input type=submit>
