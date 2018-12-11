@@ -37,19 +37,30 @@ def lambda_handler(event, context):
 	df_cfatv['ERR'] = np.nan
 	df_cfatv['VOL'] = np.nan
 	df_cfatv['DIF'] = np.nan
+	missing = lambda ser: ser.isna().sum() / float(len(ser))
 	for idx in df_cfatv.index:
 		ins, outs = df_cfatv.loc[idx, ['IN', 'OUT']]
 		try:
-			ins = df_piv[ins].sum(skipna = False).sum(skipna = False)
-			outs = df_piv[outs].sum(skipna = False).sum(skipna = False)
+			ins = df_piv[ins].sum(skipna = False)
+			outs = df_piv[outs].sum(skipna = False)
+
+			# Don't allow more than 5% NaN
+			if missing(ins) < 0.05 and missing(outs) < 0.05:
+				vol = (ins + outs).sum()
+				dif = (ins - outs).sum()
+			else:
+				vol = np.nan
+				dif = np.nan
+
+			df_cfatv.loc[idx, 'DIF'] = dif
+			df_cfatv.loc[idx, 'VOL'] = vol
+			df_cfatv.loc[idx, 'ERR'] = abs(dif) / float(vol)
 		except KeyError as e:
 			logger.debug("Cannot account FATV {}, illformed FATV or bad meta?".format(idx))
-			ins = np.nan
-			outs = np.nan
+			df_cfatv.loc[idx, 'DIF'] = np.nan
+			df_cfatv.loc[idx, 'VOL'] = np.nan
+			df_cfatv.loc[idx, 'ERR'] = np.nan
 	
-		df_cfatv.loc[idx, 'DIF'] = ins - outs
-		df_cfatv.loc[idx, 'VOL'] = ins + outs
-		df_cfatv.loc[idx, 'ERR'] = abs(ins - outs) / (ins + outs)
 	
 	# Identify implicated detectors, start at 2.5% error
 	singleton = set()
