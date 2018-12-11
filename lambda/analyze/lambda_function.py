@@ -41,8 +41,8 @@ def lambda_handler(event, context):
 	for idx in df_cfatv.index:
 		ins, outs = df_cfatv.loc[idx, ['IN', 'OUT']]
 		try:
-			ins = df_piv[ins].sum(skipna = False)
-			outs = df_piv[outs].sum(skipna = False)
+			ins = df_piv[ins].sum(axis = 1, skipna = False)
+			outs = df_piv[outs].sum(axis = 1, skipna = False)
 
 			# Don't allow more than 5% NaN
 			if missing(ins) < 0.05 and missing(outs) < 0.05:
