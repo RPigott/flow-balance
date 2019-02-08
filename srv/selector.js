@@ -435,7 +435,7 @@ var Selector = {
 						});
 						var relerr = flows['stats']['relerr']
 						$('#det-fatv-in').text(
-							flows['stats']['miscount'] + "(" + relerr.toFixed(3) + "%)"
+							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + ")"
 						);
 					};
 				}
@@ -469,7 +469,7 @@ var Selector = {
 						});
 						var relerr = flows['stats']['relerr']
 						$('#det-fatv-out').text(
-							flows['stats']['miscount'] + "(" + relerr.toFixed(3) + "%)"
+							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + ")"
 						);
 					};
 				}
