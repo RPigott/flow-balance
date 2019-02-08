@@ -433,7 +433,10 @@ var Selector = {
 								'title': 'Vehicles / 5min'
 							}
 						});
-						$('#det-fatv-in').text(flows['stats']['miscount']);
+						$('#det-fatv-in').text(
+							flows['stats']['miscount'] +
+							"(" + flows['stats']['relerr'] + "%)"
+						);
 					};
 				}
 			}).fail(function (jqxhr, textStatus, errorThrown) {console.log(textStatus, errorThrown)});
