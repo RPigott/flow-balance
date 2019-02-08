@@ -102,6 +102,10 @@ def handle_plot(path, query):
 	in_data = df_piv[fd_in].sum(axis = 1, skipna = False)
 	out_data = df_piv[fd_out].sum(axis = 1, skipna = False)
 
+	miscount = in_data.sum() - out_data.sum()
+	volume = in_data.sum() - out_data.sum()
+	relerr = miscount / volume
+
 	body = {
 		'IN': {
 			'detectors': fd_in,
@@ -120,6 +124,11 @@ def handle_plot(path, query):
 				'x': [str(time) for time in out_data.index],
 				'y': [n if not np.isnan(n) else None for n in out_data.values]
 			}
+		},
+		'stats': {
+			'miscount': miscount,
+			'volume': volume,
+			'relerr': relerr
 		}
 	}
 

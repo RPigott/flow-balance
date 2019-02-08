@@ -289,8 +289,8 @@ var Selector = {
 		$('#det-city').text(detector.info["City"]);
 		$('#det-lat').text(detector.info["lat"]);
 		$('#det-lon').text(detector.info["lon"]);
-		$('#det-fatv-in').text(detector.info["fatv_in"]);
-		$('#det-fatv-out').text(detector.info["fatv_out"]);
+		$('#det-fatv-in').text("-");
+		$('#det-fatv-out').text("-");
 	},
 
 	'onHover': function(e) {
@@ -433,6 +433,7 @@ var Selector = {
 								'title': 'Vehicles / 5min'
 							}
 						});
+						$('#det-fatv-in').text(flows['stats']['miscount']);
 					};
 				}
 			}).fail(function (jqxhr, textStatus, errorThrown) {console.log(textStatus, errorThrown)});
@@ -463,6 +464,7 @@ var Selector = {
 								'title': 'Vehicles / 5min'
 							}
 						});
+						$('#det-fatv-out').text(flows['stats']['miscount']);
 					};
 				}
 			});
