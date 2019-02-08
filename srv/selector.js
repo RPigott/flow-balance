@@ -433,9 +433,9 @@ var Selector = {
 								'title': 'Vehicles / 5min'
 							}
 						});
-						var relerr = flows['stats']['relerr']
+						var relerr = flows['stats']['relerr'] * 100
 						$('#det-fatv-in').text(
-							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + ")"
+							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + "%)"
 						);
 					};
 				}
@@ -467,9 +467,9 @@ var Selector = {
 								'title': 'Vehicles / 5min'
 							}
 						});
-						var relerr = flows['stats']['relerr']
+						var relerr = flows['stats']['relerr'] * 100
 						$('#det-fatv-out').text(
-							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + ")"
+							flows['stats']['miscount'] + " (" + relerr.toFixed(3) + "%)"
 						);
 					};
 				}
