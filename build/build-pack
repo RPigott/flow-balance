@@ -36,7 +36,7 @@ function buildpack() {
 	# find pack/ -name '*.pyc' -delete # not really necessary
 	rm -rf pack/pip*
 	rm -rf pack/wheel*
-	rm -rf pack/boto*
+	# rm -rf pack/boto*
 	rm -f  pack/easy_install.py
 
 	# Include the handler
