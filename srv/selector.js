@@ -537,8 +537,13 @@ $('document').ready(function() {
 
 	$('#detector-search').on('submit', function (e) {
 		e.preventDefault();
-		detector = $('#detector-search input[name=detector-id]')[0].value;
-		selector.onSelect(selector.detectors[detector]);
+		var detector = $('#detector-search input[name=detector-id]')[0].value;
+		var mark = selector.detectors[detector];
+		if (!mark) {
+			alert("No such detector: " + detector);
+		} else {
+			selector.onSelect(mark);
+		};
 	});
 
 	$('#date-patch').on('submit', function (e) {
