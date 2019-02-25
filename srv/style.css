@@ -74,6 +74,23 @@ table i {
 	min-width: 12em;
 }
 
-#settings {
+#tools {
+	display: flex;
+	justify-content: space-between;
+}
+
+#tools > div {
+	display: inline-block;
 	margin: 10px;
+}
+
+#utils {
+	position: relative;
+	width: 50%;
+}
+
+#detector-search {
+	position: absolute;
+	right: 0;
+	bottom: 0;
 }

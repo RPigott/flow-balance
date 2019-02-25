@@ -37,6 +37,7 @@
 
 <body>
 	<div class="container-fluid">
+		<div id="tools">
 		<div id="settings" class="row">
 			<form>
 				<i class="fa fa-info-circle" aria-hidden="true"
@@ -55,6 +56,17 @@
 				<input type=submit>
 				<div class="indicator idle"></div>
 			</form>
+		</div>
+		<div id=utils>
+			<form id=detector-search>
+				<i class="fa fa-info-circle" aria-hidden="true"
+					title="Search for given detector">
+				</i>
+				<span class="form-label">Search: </span>
+				<input name=detector-id type=search>
+				<input type=submit>
+			</form>
+		</div>
 		</div>
 		<div id="selection" class="row">
 			<div class="col-xs-2" id="detector-info">

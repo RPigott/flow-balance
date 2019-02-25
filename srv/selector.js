@@ -535,6 +535,12 @@ $('document').ready(function() {
 		Plotly.relayout('plot-2', edata);
 	});
 
+	$('#detector-search').on('submit', function (e) {
+		e.preventDefault();
+		detector = $('#detector-search input[name=detector-id]')[0].value;
+		selector.onSelect(selector.detectors[detector]);
+	});
+
 	$('#date-patch').on('submit', function (e) {
 		e.preventDefault();
 		setIndicator($('#date-patch .indicator'), 'busy');
