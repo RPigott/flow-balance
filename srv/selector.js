@@ -139,7 +139,7 @@ var Selector = {
 			success: function(json) {
 				$.each(json, function(id, info) {
 					info.loc = [info.lat, info.lon];
-					var peerless = !info.fatv_in && !info.fatv_out;
+					var peerless = (info.fatv_in == null) && (info.fatv_out == null);
 					var marker = L.marker(info.loc, {
 						icon: peerless ? self.peerlessIcon : self.standardIcon,
 						opacity: 0.9
