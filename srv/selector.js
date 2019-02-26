@@ -410,7 +410,7 @@ var Selector = {
 			});
 		}
 
-		if (detector.info.fatv_in) {
+		if (detector.info.fatv_in !== null) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_in + '?date=' + window.date;
 			$.ajax({
 				url: target,
@@ -444,7 +444,7 @@ var Selector = {
 			Plotly.purge('plot-1');
 		};
 
-		if (detector.info.fatv_out) {
+		if (detector.info.fatv_out !== null) {
 			var target = root_api + 'data/plot/' + detector.info.fatv_out + '?date=' + window.date;
 			$.ajax({
 				url: target,
