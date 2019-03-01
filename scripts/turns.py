@@ -86,6 +86,9 @@ def get_balance(s3, key):
 def has_all(idx, target):
 	return np.all(pd.Series(idx).isin(target))
 
+def interval_str(interval):
+	return '-'.join(interval)
+
 # Load data
 s3 = boto3.client('s3')
 logging.info("Get FATV info")
@@ -138,9 +141,9 @@ for turn in turns:
 
 		if quality > 0:
 			if not header:
-				print(f"FATV start-stop quality incoming outgoing" + " ".join(f"{sink:7d}" for sink in outset))
+				print(f"FATV   start-stop quality incoming outgoing" + " ".join(f"{sink:7d}" for sink in outset))
 				header = True
-			print(f"{turn:4d} {interval[0]:>5s}-{interval[1]} {quality:7.1f} {incoming:8.0f} {outgoing:8.0f}", end = '')
+			print(f"{turn:4d} {interval_str(interval):>12s} {quality:7.1f} {incoming:8.0f} {outgoing:8.0f}", end = '')
 			print(" ".join(f"{100 * volume / outgoing:6.2f}%" for sink, volume in sinks))
 	if header:
 		print()
