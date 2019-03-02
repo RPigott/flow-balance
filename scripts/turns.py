@@ -34,6 +34,7 @@ logging.basicConfig(
 	datefmt = "%X"
 )
 
+# Extra argparsing
 intervals = []
 if not args.time:
 	intervals = [('0:00', '23:59')]
@@ -122,7 +123,7 @@ off = detectors.index[detectors['Type'] == 'Off Ramp']
 turns = fatvs['OUT'].apply(lambda out: np.any([off.contains(det) for det in out]))
 turns = pd.Series(turns.index[turns])
 
-print(f"date: {args.date}")
+print(f"date: {args.date:%Y-%m-%d (%A)}")
 for turn in turns:
 	inset = fatvs.loc[turn, 'IN']
 	outset = fatvs.loc[turn, 'OUT']
