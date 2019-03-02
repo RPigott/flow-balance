@@ -7,8 +7,6 @@ from botocore.exceptions import ClientError
 import logging
 import argparse
 
-import IPython
-
 def datearg(date):
 	try:
 		return dt.datetime.strptime(date, "%Y-%m-%d").date()
@@ -37,18 +35,21 @@ logging.basicConfig(
 )
 
 intervals = []
-for interval in args.time:
-	if '-' in interval:
-		start, stop = interval.split('-')
-	else:
-		start, stop = '0:00', interval
-	
-	if not stop:
-		stop = '23:59'
-	
-	interval = start, stop
-	intervals.append(interval)
-	
+if not args.time:
+	intervals = [('0:00', '23:59')]
+else:
+	for interval in args.time:
+		if '-' in interval:
+			start, stop = interval.split('-')
+		else:
+			start, stop = '0:00', interval
+		
+		if not stop:
+			stop = '23:59'
+		
+		interval = start, stop
+		intervals.append(interval)
+		
 # Util
 def get_df(s3, key, **kwds):
 	if 'index_col' not in kwds:
@@ -86,8 +87,16 @@ def get_balance(s3, key):
 def has_all(idx, target):
 	return np.all(pd.Series(idx).isin(target))
 
-def interval_str(interval):
-	return '-'.join(interval)
+lane_types = {
+	'Coll/Dist'           : 'CD',
+	'Conventional Highway': 'CH',
+	'Fwy-Fwy'             : 'FF',
+	'Off Ramp'            : 'FR',
+	'HOV'                 : 'HV',
+	'Mainline'            : 'ML',
+	'On Ramp'             : 'OR',
+}
+typecode = lambda det: lane_types.get(detectors.loc[det, 'Type'])
 
 # Load data
 s3 = boto3.client('s3')
@@ -113,7 +122,7 @@ off = detectors.index[detectors['Type'] == 'Off Ramp']
 turns = fatvs['OUT'].apply(lambda out: np.any([off.contains(det) for det in out]))
 turns = pd.Series(turns.index[turns])
 
-print(args.date)
+print(f"date: {args.date}")
 for turn in turns:
 	inset = fatvs.loc[turn, 'IN']
 	outset = fatvs.loc[turn, 'OUT']
@@ -139,12 +148,16 @@ for turn in turns:
 		outgoing = flow[outset].values.sum()
 		sinks = [(sink, flow[sink].values.sum()) for sink in outset]
 
+		offdet = next(det for det in outset if detectors.loc[det, 'Type'] == 'Off Ramp')
+		title = ' | '.join(detectors.loc[offdet, ['Name', 'Dir']])
+
 		if quality > 0:
 			if not header:
-				print(f"FATV   start-stop quality incoming outgoing" + " ".join(f"{sink:7d}" for sink in outset))
+				print(f"FATV {turn}: {title}")
+				print(f"start-finish quality incoming outgoing " + " ".join(f"[{typecode(sink)}]{sink}" for sink in outset))
 				header = True
-			print(f"{turn:4d} {interval_str(interval):>12s} {quality:7.1f} {incoming:8.0f} {outgoing:8.0f}", end = '')
-			print(" ".join(f"{100 * volume / outgoing:6.2f}%" for sink, volume in sinks))
+			print(f" {interval[0]:>05s}-{interval[1]:>05s} {quality:7.1f} {incoming:8.0f} {outgoing:8.0f} ", end = '')
+			print(" ".join(f"{100 * volume / outgoing:9.2f}%" for sink, volume in sinks))
 	if header:
 		print()
 
