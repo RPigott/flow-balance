@@ -43,7 +43,10 @@ else:
 		if '-' in interval:
 			start, stop = interval.split('-')
 		else:
-			start, stop = '0:00', interval
+			hour, minute = interval.split(':')
+			carry, minute = divmod(int(minute) + 55, 60)
+			hour = int(hour) + carry
+			start, stop = interval, f"{hour:02d}:{minute:02d}", 
 		
 		if not stop:
 			stop = '23:59'
