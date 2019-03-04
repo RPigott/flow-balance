@@ -161,7 +161,7 @@ for turn in turns:
 				print(f"start-finish quality incoming outgoing " + " ".join(f"[{typecode(sink)}]{sink}" for sink in outset))
 				header = True
 			print(f" {interval[0]:>05s}-{interval[1]:>05s} {quality:7.1f} {incoming:8.0f} {outgoing:8.0f} ", end = '')
-			print(" ".join(f"{100 * volume / outgoing:9.2f}%" for sink, volume in sinks))
+			print(" ".join(f"{volume / outgoing:10.2%}" for sink, volume in sinks))
 	if header:
 		print()
 
