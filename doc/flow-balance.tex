@@ -1,0 +1,220 @@
+\documentclass[titlepage]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{listings}
+% \usepackage{tikz}
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=black,
+	urlcolor=blue
+}
+
+\begin{document}
+\title{Flow Balance}
+\author{Ronan Pigott}
+\maketitle
+\addtocounter{page}{1}
+
+\tableofcontents
+\newpage
+
+\section{Motivation}\label{motivation}
+% Flow-balance problem statement and design goals.
+The accuracy of traffic models is closeley related to the accuracy and reliability of the input data. One soure of traffic data for Calpath is the PeMS detector network, which is comprehensive but not yet sufficiently reliable for all academic work. Redundancies in the network along with predictability of traffic patterns allow for the production of data-quality software which leverages out-of-band information and/or statistical principles to diagnose errors and misconfigurations of the network. Flow-balance is one such data-quality projet used by researchers which aims to help diagnose these errors. Unfortunately, frequency and variance of detector errors is too high to be consistently and accurately identify all issues on the network simultaneously, which heavily limits the practicality of methods that assign binary labels to each network detector.
+
+Flow-balance is a practical approach to the network health problem via a simple heuristic vehicle counting method, but the architecture of the project is flexible enough to allow for any number of other approaches to be substituted, included, or combined into the final result. This flexibility has allowed, flow-balance to adopte many ancillary behaviors which assist the development of rich academic models adapted to the PeMS network.
+
+The goal of flow-balance is to provide a visual representation of the status of the detector network using a variety of color coded classifications which may allow for the diagnosis and analysis of a wider variety of issues by a researcher or technician than any automated judgement. It also provides auxiliary information that may help to diagnose the nature of an error (section \ref{interpretation}).
+
+\section{Method}\label{method}
+% Overview of FATV approach to vehicle counting.
+Flow-balance makes its classifications by representing the streetmap with a directed graph, then subdividing the network graph into small groups of detectors called ``FATV''s for Fully Accounted Traffic Volumes. A FATV is defined by the union of two subsets of detectors, an in-set and out-set where a vehicle that arrives from the in-set cannot exit the network without travelling through the out-set. For any given interval, the vehicle totals should satisfy $V_{IN} + V_C = V_{OUT} + V_R$ where $V_C$ is the number of vehicles contained in the FATV at the beginning of the time interval, and $V_R$ is the number of vehicles that remain in the FATV at the end of the interval. If any detector on the network is systematically miscounting the vehicles, it should cause a large deviation from the expected balance property. Each FATV has a maximum capacity $V_{CAP}$ representing the maximum number of vehicles that can simlultaneously occupy the FATV, which limits the value of $V_C$ and $V_R$. Flow-balance makes \textit{no attempt} to estimate $V_{CAP}$, the maximum occupancy of each FATV. To increase the relative magnitude of the miscount (absolute difference of $V_{IN}$ and $V_{OUT}$) when compared to the intrinstic error caused by the number of vehicles in the FATV, longer time intervals are preferred. At the time of this writing the interval used for classifications is one full day. To reduce the set of potentially erroneous detectors in response to a miscount, smaller FATVs are preferred.
+
+\subsection{Generating FATVs}\label{fatvs}
+% Detailed description of FATV generation from graph-network perspective.
+For the best coverage in the analysis, its desireable to produce a large number of FATVs. For the best accuracy, its best to use FATVs that are as small as possible. Fortunately, for a network that is acyclic and connected, it is possible to produce set of irreducible FATVs that covers the entire network like so:
+
+First, represent traffic junctions as vertices and traffic sections as edges. This allows us to differentiate metered edges (sections that contain a detector) and unmetered edges (sections that do not contain a detector). Then the network can be reduced to FATVs by
+
+\begin{enumerate}
+	\item Introduce a virtual vertex representing every location outside the network, and introduce an unmetered edge for each section that terminates outside the network.
+	\item Group the vertices by strongly connected components on the undirected subgraph containing only unmetered connections. This groups areas where a vehicle may travel without being detected if and only if the original graph is acyclic.
+	\item For each component, the locus of incoming edges matched with outgoing edges will form a FATV. This set of FATVs covers a connected graph.
+	\item More than one detector may appear on each section, so to produce irreducible FATVs, assign the first detector of each outgoing edge and the final detector of each incoming edge to the FATV associated with its group, then produce a trivial FATV from each adjacent detector pair within sections that contain more than one detector. This set of FATVs is now guaranteed to be irreducible.
+\end{enumerate}
+
+At this point, detectors that do not belong to a FATV cannot be assigned to one, because they are not connected by metered edges. Detectors that have an unmetered connection terminating outside the network belong to at most 1 FATV. Every other detector belongs to at most 2 FATVs, one in-set and one out-set.
+
+In practice, a majority of the detector belong to FATVs composed of only 2 or 3 detectors. Very few FATVs have 6 or more detectors.
+
+\subsection{Labeling Detectors}\label{labels}
+Flow-balance has 7 defined classifications, which may indicate information about the local flow, network configuratio, or individual data quality. They are:
+
+\begin{itemize}
+	% flow domain
+	\item \textbf{miscounting}: This detector's flow count is suspicious.
+	\item \textbf{singleton}: This detector belongs to a FATV with a miscount.
+	\item \textbf{clear}: No issues identified with this detector.
+
+	% data quality domain
+	\item \textbf{unobserved}: This detector is not reporting sufficient data.
+	\item \textbf{unknown}: This detector's neighborhood is not reporting sufficient data.
+
+	% network domain
+	\item \textbf{peerless}: This detector does not belong to a FATV.
+	\item \textbf{untracked}: This detector is in the PeMS configuration, but not in the network model.
+\end{itemize}
+
+% Detailed description of detector classification decision tree and heuristics.
+For FATVs where the miscount is small, every member is classified as \textbf{clear}. At the time of this writing this judgement is set to a static cutoff at 2.5\% of the total volume ($V_{IN} + V_{OUT}$).
+
+For FATVs where the miscount is large, we can infer that at least one member is miscounting if the network representation is accurate. We can narrow the set of potentially erroneous detectors by comparing the total miscount in the erroneous FATV to other overlapping FATVs. If we assume it is rare for two detectors in the same FATV to be in error, we can try to identify the failing detector by:
+\begin{enumerate}
+	\item Listing all FATVs that intersect the miscounting FATV, called the neighborhood of that FATV. As described in section \ref{fatvs}, each detector can only belong to \textit{at most} 2 FATVs, so each detector in a common FATV can belong only to 1 additional FATV, so we will examine no more FATVs than detectors in a single FATV.
+	\item Discard FATVs that have a low miscount. At the time of this writing this is a static cutoff of 1\% of the total volume.
+	\item For each remaining secondary FATV, combine it with the miscounting FATV and check if the miscount is significantly reduced. If it is, blame the intersection of the miscounting FATV and secondary FATV. At the time of this writing, the miscount of the combined FATV must be less than 15\% of the original to be considered significant.
+	\item Other detectors belonging to one of the FATVs, the peers, are exonerated and classified as \textbf{clear}.
+\end{enumerate}
+
+In practice, many detectors report no data at all, or are known to be unreliable for other reasons, known bad detectors are classified as \textbf{unobserved}. In these cases, the status of its peers is \textbf{unknown}, so they are classified as such. At the time of this writing, detectors that report less than 50\% observed data will be classified as unobserved. Detectors that report NaNs may cause an 'unknown' classification for itself and its peers. Detectors should report no more than 5\% NaNs to avoid this classification. For detectors that report fewer NaNs, the missing timestamps will be skipped for calculating the miscount and volume in their FATV.
+
+Among the FATVs that have reporting detectors, if only one detector belongs to the intersection of FATVs, then that detector is labelled as miscounting. If two or more detectors belong to the intersection, those detectors are \textbf{dependent} and there is \textbf{no} counting method that can uniquely blame one over the other for miscounts. These detectors are classified as \textbf{miscount}s. If the miscounting FATV is the only FATV in its neighborhood, the miscounting detector cannot be identified among its peers and all member detectors are classified as singletons. Detectors that do not belong to any FATV, because the network does not permit them to be assigned to one, are classified as \textbf{peerless}.
+
+To summarize, in a perfectly reporting network with no misconfigurations, only \textbf{clear}, \textbf{singleton}, and \textbf{miscount} classifications exist. All detectors would be clear unless their FATV is miscounting, then they will be labelled singletons unless a neighboring witness FATV can exonerate them via the described heuristics.
+
+% \begin{figure}
+% \begin{tikzpicture}
+% \tikzset{
+% 	every node/.style={
+% 		draw, circle, thick
+% 		minimum size=2
+% 	}
+% }
+
+% \node (A) at (0, 1);
+% \node (B) at (2, 1);
+
+% \draw (0, 0) -> (A);
+% \draw (2, 0) -> (B);
+% \draw (A) -> (0, 2);
+% \draw (B) -> (2, 2);
+
+% \end{tikzpicture}
+% \end{figure}
+
+\section{Interpretation}\label{interpretation}
+% How to navigate and interpret the flow-balance interface.
+Vehicle counting is insufficient to provide a rich set of classifications for each way a detector network can fail, e.g. by a controller misconfiguration, systematic miscount, lane cross double couting etc. So, in addition to the classifications, the flow-balance interface has some features that may prove useful in identifying the cause or nature of an error.
+
+\subsection{Interface}\label{interface}
+By default, the flow-balance interface provides a map view of the network with all detectors visible. The classification of a detector is indicated by the color of its marker and described in the legend. The detectors are somewhat cluttered from the zoomed out map view so you may use the mouse scroll embedded zoom buttons to focus on a specific section. When you are done, the home button can be used to reset the view to the default.
+
+The tag button can be used to cycle the visible detectors through each classification in the legend. Because of the existence of non flow-balance classifications (network or data-quality information), some detectors may belong to more than one class and appear in the highlighted class view even though they are colored differently. Non flow-balance classification colors are preferred when a detector belongs to more than one class.
+
+You may click on a detector to select it. Details of the selected detector are available in the sidebar, and the view will restrict to the neighborhood of that detector. Other detectors that do not belong to the neighborhood are obscured. To toggle obscuring these detectors, use the eye button.
+
+When a detector is selected, flow-balance will produce up to two plots of the total 5-minute flows for each FATV that contains the selected detector, one for its associated in-set and one for the out-set. The number of the selected detector is highlighted in the plots. The side-panel will also be updated with the miscount information for each member FATV.
+
+To view the analysis for a different date, request the date in the view form. If the analysis is not cached, you must submit a request to analyze the date first. See section \ref{implementation}.
+
+\subsection{Classification Patterns}
+% What patterns have been identified in flow-balance classifications?
+The plots presented for a selected detector show the in-set and out-set flow for each FATV a detector belongs to. These flows are useful for discerning the nature of the a classified error, or understanding observed errors where flow-balance does not identify one. Miscounts could also be caused by a mistake in the network model, and flow-balance is exceptionally good at identifying these errors, because they look very similar to a single miscount where vehicles that are expected to be counted by one detector are instead counted by another.
+
+When a miscounting detector is selected, try toggling the eye button to unobscure detectors outside the neighborhood to see if a nearby detector is also miscounting. Twin miscounts may be caused by a swap in a nearby controller. If you are suspicious of a detector, especialy one that is classified as a singleton error, try examining the flows of upstream and downstream FATVs -- singleton errors may result from nearby FATVs reporting as unknown, but it may still be possible to manually identify the detector at fault in a group in some cases by observing large miscounts of similar magnitude and opposite sign in the neighboring FATVs, even when their NaN reporting is too frequent to be automatically identified. Nearby \textbf{untracked} detectors may also indicate a recent change in the PeMS configuration that is not reflected in the network model causing local errors.
+
+\section{Results}\label{results}
+% Are flow-balance classifications accurate?
+The unreliable nature of the network poses a significant challenge for any meta analysis of the accuracy of flow-balance classification labels, and is one of the primary motivations for flow-balance's reliance on heuristics over more rigorous statistical models. Despite best efforts, classifications are not absolute, and it is always best to examine the underlying flows when flow-balance identifies suspicious counts.
+
+\textbf{miscounting} is generally a strong condition, as it implies that at the very least two detectors agree on a count that this detector does not, in most cases a miscount classification involves many more than 3 detectors. Assuming detectors are generally consistent in their miscounts, the cutoffs for identifying a FATV miscount and blaming a detector were chosen to provide the most consistent identification of miscounting detectors for one week of data in 2018. This was achieved by starting with an arbitrary high cutoff and shrinking it until only a few consistantly flagged FATVs remain. Then the blame cutoff can be found in a similar fashion. This work was done by hand and is certainly prone to error. The heuristic values for flow-balance are a target topic for future study.
+
+\section{Ancillary Functions}\label{ancillary}
+% How does flow-balance interact with the Aimsun model and PeMS clearinghouse datasets for Calpath?
+To effectively classify detectors and identify errors, flow-balance needs the network model it builds FATVs from to be as accurate and up to date as possible. The PeMS dataset updates its configuration roughly monthly, and the flow-balance network model must be maintained manually. Flow-balance has functions to update the network model from a complete Aimsun model, but this still relies on the user to implement changes in the PeMS configuration in the Aimsun model first. To assist in the creation of an up to date model, flow-balance has adopted some ancillary functions to notify users of discrepancies in the PeMS configuration and most recently referenced model.
+
+The \textbf{untracked} classification exists to indicate a detector that appears in the PeMS configuration, but does not appear in the most recently referenced model.
+
+The map view of flow-balance is useful for visualizing the PeMS configuration, with accurate detector locations, even if you do not make use of its classification features. Flow-balance identifies the origin of location information as exact or inexact based on whether or not an exact location override has been provided in the 'location.csv' file. See section \ref{internals} for details.
+
+\section{Implementation}\label{implementation}
+% Overview of what automated steps happen and when.
+The flow-balance architecture is implemented and codified in the AWS cloud service. Flow-balance is implemented as a collection of lambda microservices paired with a single page app interface. For a good overview of what steps happen and when, along with links to the relevant resources, see the README in the flow-balance repo on CodeCommit.
+
+\subsection{Internals}\label{internals}
+% Where can I find the AWS resources associated with the flow-balance project?
+Many functions of the interface rely on precomputed data for quick operaton. Precomputed artifacts for the flow-balance project are all placed under a similar prefix in a flow-balance s3 bucket referred to here as the data cache or analysis cache. The data cache has a s3 lifetime policy of 3 days, which will cause files to expire 3 days after their creation. This is to helps to avoid accumulation of data and also absolves flow-balance of the responsibility of cleaning up after itself on reruns or mistakes as old files will be purged automatically by Amazon.
+
+The microservice lambda functions that implement the behaviors of flow-balance are
+\begin{itemize}
+	\item \texttt{fb-daily} --
+		This lambda is responsible for requesting the raw PeMS data, coordinating it with the most-recent-prior meta and placing it under the appropriate prefixes in the data cache for the apigateway to fetch. It also pre-prepares data files for the plots.
+
+	\item \texttt{fb-analyze} --
+		This lambda is responsible for assigning balance classifications to each detector.
+
+	\item \texttt{fb-model} --
+		This lambda is responsible for watching the designated prefix in s3 for model uploads, then it generates FATVs as described in section \ref{fatvs} and records them to the approprate prefix.
+
+	\item \texttt{fb-proxy} --
+		This lambda intermediates the apigateway and s3 allowing for more flexible requests.
+\end{itemize}
+
+\texttt{fb-daily} is calendar triggered daily at 7:00 PST, \texttt{fb-analyze} is triggered by uploads to the data cache, including the actions of \texttt{fb-daily}, and \texttt{fb-model} is triggered by uploads to the \texttt{info/} prefix. This means the data and analysis cache should usually contain the past 3 days of data automatically before automatically purged by the lifetime policy.
+
+% Where and what do they log?
+Each lambda has a unique logstream in Cloudwatch that can be used to watch its progress or diagnose errors. The lambdas report at INFO level and above by default. The logging level can only be changed in the source at the moment.
+
+\subsubsection{Cost}\label{cost}
+The microservice model of flow-balance makes it difficult to estimate the exact cost of flow-balance, because it will depend strongly on the usage triggering each lambda and how often those lambdas trigger fiurhter lambas or require transfer of data from the s3. Additionally, many AWS resources have fine-grained pricing models that complicate cost estimation. Under ``normal'' usage, the author expects flow-balance will incur the following cloud resource costs
+\begin{itemize}
+	\item S3 storage: under 500MB/month $\approx \$0.01$/month (mostly \texttt{/data/raw})
+	\item S3 requests: under 10GB/month $\approx \$0.70$/month (mostly \texttt{fb-analyze})
+	\item Lambda usage: under 1GB$\cdot$s/month $\approx \$0.04$/month
+	\item API gateway: negligible
+	\item Codebuild: $\approx \$0.03$/build (EC2 builds cost slightly more, see section \ref{development})
+\end{itemize}
+
+
+\subsection{Interface}\label{frontend}
+% How does the flow-balance interface request its information from AWS? How is it hosted? How is it secured?
+The flow-balance page static assets are hosted on s3 and available to the public. This includes virtually all assets that are not data.
+
+To retrieve the analysis for a given day, the page makes three requests: one for detectors and their metadata, one for FATV assignments, and another for the day's diagnosis. Detector metadata is drawn from the most-recent-prior 'meta' dataset from PeMS, but the locations, including the merker's displayed location, are supplemented with a special location file in s3. FATVs are pulled from a static file in s3 that is updated manually by the user, see section \ref{api} for details. The diagnosis is pulled from the analysis cache on s3. To submit a date to the analysis cache, the user can use the 'analyze' form on the webpage.
+
+For security reasons, the data s3 buckets are not public and non aws users must retrieve their content via the flow-balance-proxy apigateway established for this purpose. All resources on the apigateway are secured by a cognito user pool. Any client must pass a valid cognito JSONWebToken and be authenticated as any data-quality user for each request to the apigateway. By default, the users token expiers after 1 hour and they must get a new one from the data-quality login. Normally, this token is passed to the application from the data-quality landing page and stored in the browsers session storage.
+
+The plots also require a request each through the same apigateway and rely on the Plotly library for rendering.
+
+\subsection{API}\label{api}
+% How can I update the Aimsun reference model?
+The interface does not expose any method to update the network model, so it should be updated manually. The flow-balance project contains an Aimsun plugin in the scripts directory for the express purpose of dumping the relevant information from an Aimsun model. To update the flow-balance network model, the user should zip together the output files and drop them directly under the \texttt{info/} prefix in the flow-balance s3 bucket like so:
+
+\begin{lstlisting}
+	zip -j model.zip dump/*
+	aws s3 cp model.zip s3://flow-balance/info/model.zip
+\end{lstlisting}
+
+% How can I hook or modify flow-balance analysis?
+The apigateway is the usual portal for retrieving information from the analysis cache. Please view the \texttt{flow-balance-proxy} resource map for details
+
+\section{Development}\label{development}
+% Where can I find the flow-balance source tree?
+% What features does the CI platform support?
+All code related to the flow-balance project belongs in the flow-balance repo on CodeCommit. Flow-balance additionally has a dependency on amscore through \texttt{fb-daily} which uses the \texttt{pems.download} module to retrieve its data.
+
+Deployment is mostly automated through Codepipeline and Codebuild. Please examine \texttt{buildspec.yml} and the scripts in \texttt{build} to see how it works. The CI is responsible for updating the static assets in s3 and updating the code for each microservice lambda. The CI only watches \texttt{master}, so it is possible to use other branch names to collaborate on experimental features.
+
+If you would like to build the lambda bundles outside of Codepipeline, fire up an ec2 with the default amazon linux image, copy over the build scripts and run them yourself. Unless you have provisioned an ec2 with the appropriate access policy, your ec2 will likely not have permission to utilize the AWS \texttt{lambda:update-function-code} action so \texttt{sync-lambda} will fail. Either update the code manually or push it to \texttt{master} when you are done testing.
+
+% How can I modify flow-balance?
+Flow-balance is not yet backed by a Cloudformation or any similar configuration metaservice, so changes to the architecture, such as triggers and lambda parameters must be done through the AWS console or commandline utilities. Though the apigateway swagger file is tracked by version control, it is not referenced by Codebuild, so changes to apigateway resources must be made through the utilities as well.
+
+\section{Resources}\label{resources}
+\begin{itemize}
+	\item \href{https://us-west-2.console.aws.amazon.com/codesuite/codecommit/repositories/flow-balance/browse}{flow-balance CodeCommit repo}
+	\item \href{https://console.aws.amazon.com/s3/buckets/flow-balance/?region=us-west-2}{flow-balance S3 bucket}
+	\item \href{https://connected-corridors.berkeley.edu/tool}{data-quality login (flow-balance portal)}
+\end{itemize}
+
+\end{document}
